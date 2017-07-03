@@ -1,0 +1,15 @@
+{application
+,sockerl
+,[{description, "This is advanced Erlang socket library for TCP protocols and provides fast, useful and simple API for implementing server, connector and connector pool."}
+ ,{vsn, "17.7.3"}
+ ,{applications, [kernel
+                 ,stdlib
+                 ,ssl
+                 ,crypto
+                 ,public_key
+                 ,asn1]},
+  {modules, []},
+  {maintainers, ["pouriya.jahanbakhsh@gmail.com"]},
+  {licenses, ["BSD 3-Clause"]},
+  {links, [{"GitHub", "https://github.com/Pouriya-Jahanbakhsh/sockerl"}
+          ,{"CodeFather", "http://docs.codefather.org/sockerl"}]}]}.

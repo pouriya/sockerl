@@ -1,0 +1,78 @@
+digraph sockerl_server {
+	overlap=false;
+	label = "process supervison tree for sockerl library\nby pouriya.jahanbakhsh@gmail.com";
+	fontsize=20;
+
+	sockerl_server_sup[shape=circle;style = filled;color = grey];
+
+	sockerl_server_sup -> sockerl_acceptor_sup;
+	sockerl_server_sup -> sockerl_server_connection_sup;
+
+	subgraph cluster_0 {
+		label = "supervision tree for acceptors";
+		fontsize = 20;
+
+		sockerl_acceptor_sup[shape=circle;style = filled;color = grey];
+		sockerl_acceptor_1[shape=circle;style = filled;color = grey];
+		sockerl_acceptor_2[shape=circle;style = filled;color = grey];
+		sockerl_acceptor_n[shape=circle;style = filled;color = grey];
+
+		sockerl_acceptor_sup -> sockerl_acceptor_1;
+		sockerl_acceptor_sup -> sockerl_acceptor_2;
+		sockerl_acceptor_sup -> sockerl_acceptor_n;
+	}
+
+	subgraph cluster_1 {
+		label = "supervison tree for connections"
+		fontsize = 20;
+
+		sockerl_server_connection_sup[shape=circle;style = filled;color = grey];
+
+		sockerl_server_connection_sup -> sockerl_connector_sup_1;
+		sockerl_server_connection_sup -> sockerl_connector_sup_2;
+		sockerl_server_connection_sup -> sockerl_connector_sup_n;
+
+		subgraph cluster_1_0 {
+			label = "connection pool for incomming connections from sockerl_acceptor_1"
+
+			sockerl_connector_sup_1[shape=circle;style = filled;color = grey];
+			sockerl_connector_1_1[shape=circle;style = filled;color = grey];
+			sockerl_connector_1_2[shape=circle;style = filled;color = grey];
+			sockerl_connector_1_n[shape=circle;style = filled;color = grey];
+
+			sockerl_connector_sup_1 -> sockerl_connector_1_1;
+			sockerl_connector_sup_1 -> sockerl_connector_1_2;
+			sockerl_connector_sup_1 -> sockerl_connector_1_n;
+			sockerl_acceptor_1 -> sockerl_connector_sup_1;		
+		}
+		
+		subgraph cluster_1_1 {
+			label = "connection pool for incomming connections from sockerl_acceptor_2"
+
+			sockerl_connector_sup_2[shape=circle;style = filled;color = grey];
+			sockerl_connector_2_1[shape=circle;style = filled;color = grey];
+			sockerl_connector_2_2[shape=circle;style = filled;color = grey];
+			sockerl_connector_2_n[shape=circle;style = filled;color = grey];
+
+			sockerl_connector_sup_2 -> sockerl_connector_2_1;
+			sockerl_connector_sup_2 -> sockerl_connector_2_2;
+			sockerl_connector_sup_2 -> sockerl_connector_2_n;			
+			sockerl_acceptor_2 -> sockerl_connector_sup_2;		
+		}
+		
+		subgraph cluster_1_2 {
+			label = "connection pool for incomming connections from sockerl_acceptor_n"
+
+			sockerl_connector_sup_n[shape=circle;style = filled;color = grey];
+			sockerl_connector_n_1[shape=circle;style = filled;color = grey];
+			sockerl_connector_n_2[shape=circle;style = filled;color = grey];
+			sockerl_connector_n_n[shape=circle;style = filled;color = grey];
+
+			sockerl_connector_sup_n -> sockerl_connector_n_1;
+			sockerl_connector_sup_n -> sockerl_connector_n_2;
+			sockerl_connector_sup_n -> sockerl_connector_n_n;			
+			sockerl_acceptor_n -> sockerl_connector_sup_n;			
+		}
+	}
+}
+

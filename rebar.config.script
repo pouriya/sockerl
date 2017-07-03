@@ -1,0 +1,12 @@
+DirectorLink = "https://github.com/pouriya-jahanbakhsh/director.git".
+DirectorTag = "17.6.4".
+Director = {director, ".*", {git, DirectorLink, {tag, DirectorTag}}}.
+
+Rebar2Deps = {deps, [Director]}.
+
+case erlang:function_exported(rebar3, main, 1) of
+    true ->
+        CONFIG;
+    false ->
+        lists:keyreplace(deps, 1, CONFIG, Rebar2Deps)
+end.
