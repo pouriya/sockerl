@@ -96,8 +96,6 @@
 
 -record(sockerl_acceptor_state_record, {connection_sup
                                        ,listen_socket
-                                       ,accept_timeout
-                                       ,handshake_timeout
                                        ,name
                                        ,mode
                                        ,transporter
