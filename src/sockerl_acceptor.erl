@@ -115,6 +115,7 @@
 -define(DEFAULT_ACCEPT_TIMEOUT, 500).
 -define(DEFAULT_HANDSHAKE_TIMEOUT, 500).
 -define(DEFAULT_MODE, ?ACCEPT).
+-define(DEFAULT_FORWARD_RECEIVE_TIMEOUT, 500).
 
 
 
@@ -422,7 +423,7 @@ forward(Pid) ->
         Msg ->
             Pid ! Msg,
             forward(Pid)
-    after 500 ->
+    after ?DEFAULT_FORWARD_RECEIVE_TIMEOUT ->
         ok
     end.
 
