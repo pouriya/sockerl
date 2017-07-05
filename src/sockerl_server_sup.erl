@@ -172,7 +172,9 @@ start_link(Name, Mod, InitArg, Port, Opts) when erlang:is_tuple(Name),
         {ok, Pid} ->
             continue_starting(Opts, Pid);
         {error, _Reason}=Error ->
-            Error
+            Error;
+        ignore ->
+            ignore
     end.
 
 
