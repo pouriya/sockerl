@@ -359,27 +359,31 @@ init_it(Starter, Parent, Name, Mod, {InitArg, Sock}, Opts) ->
     Dbg = sockerl_utils:debug_options(?MODULE, Name, DbgOpts),
     case sockerl_socket:is_active(TrMod, Sock, Opts) of
         {ok, Active} ->
-            Metadata = sockerl_metadata:wrap(Sock
-                                            ,?DEFAULT_TIMEOUT
-                                            ,?DEFAULT_SRTIMEOUT
-                                            ,?DEFAULT_LENGHT
-                                            ,TrMod
-                                            ,Opts
-                                            ,undefined
-                                            ,undefined),
+            SMD = sockerl_metadata:wrap(Sock
+                                       ,?DEFAULT_TIMEOUT
+                                       ,?DEFAULT_SRTIMEOUT
+                                       ,?DEFAULT_LENGHT
+                                       ,TrMod
+                                       ,Opts
+                                       ,undefined
+                                       ,undefined),
             State = #?STATE{name = Name
                            ,data = undefined
                            ,module = Mod
                            ,active = Active
-                           ,metadata = Metadata},
+                           ,metadata = SMD},
             case run_callback2(Dbg
                               ,State
                               ,Mod
                               ,connector_init
-                              ,[InitArg, Metadata]) of
+                              ,[InitArg, SMD]) of
                 {ok, Dbg3, State2} ->
                     proc_lib:init_ack(Starter, {ok, erlang:self()}),
-                    loop(Parent, Dbg3, State2);
+                    loop(Parent
+                        ,Dbg3
+                        ,State2#?STATE{metadata =
+                                       SMD#?SMD{last_callback =
+                                                connector_init}});
 
                 {close, _Dbg3, _State2} ->
                     _ = sockerl_socket:close(TrMod, Sock, Opts),
