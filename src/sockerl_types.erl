@@ -86,7 +86,7 @@
                                                      | 'infnity'}
                        | {'connector_count', non_neg_integer()}
                        | {'transporter', module()}
-                       |{'connector_debug', [sys:dbg_opt()]}
+                       | {'connector_debug', [sys:dbg_opt()]}
                        | {'socket_options', list()}
                        | any().
 
@@ -114,6 +114,7 @@
              ,error/0
              ,socket/0
              ,start_options/0
+             ,start_option/0
              ,port_number/0
              ,host/0
              ,packet/0
