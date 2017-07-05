@@ -376,8 +376,8 @@ code_change(OldVsn, State, Extra) ->
 
 
 -spec
-start_link_server(module(), term(), inet:port_number()) ->
-    sockerl_server_sup:start_return().
+start_link_server(module(), term(), sockerl_types:port_number()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket server.
 %% @end
@@ -391,12 +391,12 @@ start_link_server(Mod, InitArg, Port) ->
 
 
 -spec
-start_link_server(sockerl_server_sup:register_name() | module()
+start_link_server(sockerl_types:register_name() | module()
                  ,module() | term()
-                 ,term() | inet:port_number()
-                 ,inet:port_number() |
-                  sockerl_server_sup:start_options()) ->
-    sockerl_server_sup:start_return().
+                 ,term() | sockerl_types:port_number()
+                 ,sockerl_types:port_number() |
+                  sockerl_types:start_options()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket server.
 %% @end
@@ -416,12 +416,12 @@ start_link_server(Name_or_Mod
 
 
 -spec
-start_link_server(sockerl_server_sup:register_name()
+start_link_server(sockerl_types:register_name()
                  ,module()
                  ,term()
-                 ,inet:port_number()
-                 ,sockerl_server_sup:start_options()) ->
-    sockerl_server_sup:start_return().
+                 ,sockerl_types:port_number()
+                 ,sockerl_types:start_options()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket server.
 %% @end
@@ -450,8 +450,8 @@ get_server_connections(Server) ->
 
 
 -spec
-sleep_acceptors(sockerl_server_sup:server()) ->
-    ok.
+sleep_acceptors(sockerl_types:name()) ->
+    'ok'.
 %% @doc
 %%      Turns all server acceptors to sleep mode.
 %% @end
@@ -465,8 +465,8 @@ sleep_acceptors(Server) ->
 
 
 -spec
-wakeup_acceptors(sockerl_server_sup:server()) ->
-    ok.
+wakeup_acceptors(sockerl_types:name()) ->
+    'ok'.
 %% @doc
 %%      Turns all server acceptors to accept mode.
 %% @end
@@ -480,8 +480,8 @@ wakeup_acceptors(Server) ->
 
 
 -spec
-stop_server(sockerl_server:server()) ->
-    ok.
+stop_server(sockerl_types:name()) ->
+    'ok'.
 %% @doc
 %%      stops server and all connections it has.
 %% @end
@@ -495,8 +495,8 @@ stop_server(Server) ->
 
 
 -spec
-stop_server(sockerl_server:server(), Reason::any()) ->
-    ok.
+stop_server(sockerl_types:name(), Reason::any()) ->
+    'ok'.
 %% @doc
 %%      stops server and all connections it has.
 %% @end
@@ -511,10 +511,10 @@ stop_server(Server, Reason) ->
 
 -spec
 start_link_connector_pool(module()
-                          ,term()
-                          ,inet:hostname()
-                          ,inet:port_number()) ->
-    sockerl_connector_sup:start_return().
+                         ,term()
+                         ,sockerl_types:hostname()
+                         ,sockerl_types:port_number()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection pool.
 %% @end
@@ -528,14 +528,15 @@ start_link_connector_pool(Mod, InitArg, Host, Port) ->
 
 
 -spec
-start_link_connector_pool(sockerl_connector_sup:register_name()
-                          |module()
-                          ,module() | term()
-                          ,term() | inet:hostname()
-                          ,inet:hostname() | inet:port_number()
-                          ,inet:port_number()|
-                           sockerl_connector_sup:start_options()) ->
-    sockerl_connector_sup:start_return().
+start_link_connector_pool(sockerl_types:register_name()|
+                          module()
+                         ,module() | term()
+                         ,term() | sockerl_types:hostname()
+                         ,sockerl_types:hostname() | 
+                          sockerl_types:port_number()
+                         ,sockerl_types:port_number()|
+                          sockerl_types:start_options()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection pool.
 %% @end
@@ -557,13 +558,13 @@ start_link_connector_pool(Name_or_Mod
 
 
 -spec
-start_link_connector_pool(sockerl_connector_sup:register_name()
-                          ,module()
-                          ,term()
-                          ,inet:hostname()
-                          ,inet:port_number()
-                          ,sockerl_connector_sup:start_options()) ->
-    sockerl_connector_sup:start_return().
+start_link_connector_pool(sockerl_types:register_name()
+                         ,module()
+                         ,term()
+                         ,sockerl_types:hostname()
+                         ,sockerl_types:port_number()
+                         ,sockerl_types:start_options()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection pool.
 %% @end
@@ -628,10 +629,10 @@ stop_pool(Pool, Reason) ->
 
 -spec
 start_link_connector(module()
-                     ,term()
-                     ,inet:hostname()
-                     ,inet:port_number()) ->
-    sockerl_connector:start_return().
+                    ,term()
+                    ,sockerl_types:hostname()
+                    ,sockerl_types:port_number()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection process.
 %% @end
@@ -645,13 +646,14 @@ start_link_connector(Mod, InitArg, Host, Port) ->
 
 
 -spec
-start_link_connector(sockerl_connector_sup:register_name() | module()
+start_link_connector(sockerl_types:register_name() | module()
                      ,module() | term()
-                     ,term() | inet:hostname()
-                     ,inet:hostname() | inet:port_number()
-                     ,inet:port_number() |
-                      sockerl_connector:start_options()) ->
-    sockerl_connector:start_return().
+                     ,term() | sockerl_types:hostname()
+                     ,sockerl_types:hostname() |
+                      sockerl_types:port_number()
+                     ,sockerl_types:port_number() |
+                      sockerl_types:start_options()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection process.
 %% @end
@@ -673,13 +675,13 @@ start_link_connector(Name_or_Mod
 
 
 -spec
-start_link_connector(sockerl_connector_sup:register_name()
-                     ,module()
-                     ,term()
-                     ,inet:hostname()
-                     ,inet:port_number()
-                     ,sockerl_connector:start_options()) ->
-    sockerl_connector:start_return().
+start_link_connector(sockerl_types:register_name()
+                    ,module()
+                    ,term()
+                    ,sockerl_types:hostname()
+                    ,sockerl_types:port_number()
+                    ,sockerl_types:start_options()) ->
+    sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection process.
 %% @end
