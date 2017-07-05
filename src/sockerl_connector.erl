@@ -94,14 +94,9 @@
 
 -record(sockerl_connector_state_record, {name
                                         ,data
-                                        ,length
-                                        ,socket
                                         ,active
-                                        ,timeout
                                         ,module
-                                        ,srtimeout
-                                        ,transporter
-                                        ,options}).
+                                        ,metadata}).
 -define(STATE, sockerl_connector_state_record).
 
 
@@ -110,7 +105,8 @@
 
 %% Dependencies:
 %%  #sockerl_metadata{}
-%%-include("internal/sockerl_metadata.hrl").
+-include("internal/sockerl_metadata.hrl").
+-define(SMD, sockerl_metadata).
 
 
 
@@ -363,27 +359,24 @@ init_it(Starter, Parent, Name, Mod, {InitArg, Sock}, Opts) ->
     Dbg = sockerl_utils:debug_options(?MODULE, Name, DbgOpts),
     case sockerl_socket:is_active(TrMod, Sock, Opts) of
         {ok, Active} ->
+            Metadata = sockerl_metadata:wrap(Sock
+                                            ,?DEFAULT_TIMEOUT
+                                            ,?DEFAULT_SRTIMEOUT
+                                            ,?DEFAULT_LENGHT
+                                            ,TrMod
+                                            ,Opts
+                                            ,undefined
+                                            ,undefined),
             State = #?STATE{name = Name
                            ,data = undefined
                            ,module = Mod
-                           ,length = ?DEFAULT_LENGHT
-                           ,socket = Sock
                            ,active = Active
-                           ,timeout = ?DEFAULT_TIMEOUT
-                           ,srtimeout = ?DEFAULT_SRTIMEOUT
-                           ,transporter = TrMod
-                           ,options = Opts},
+                           ,metadata = Metadata},
             case run_callback2(Dbg
                               ,State
                               ,Mod
                               ,connector_init
-                              ,[InitArg
-                               ,sockerl_metadata:wrap(Sock
-                                                     ,?DEFAULT_TIMEOUT
-                                                     ,?DEFAULT_SRTIMEOUT
-                                                     ,?DEFAULT_LENGHT
-                                                     ,TrMod
-                                                     ,Opts)]) of
+                              ,[InitArg, Metadata]) of
                 {ok, Dbg3, State2} ->
                     proc_lib:init_ack(Starter, {ok, erlang:self()}),
                     loop(Parent, Dbg3, State2);
@@ -490,28 +483,44 @@ system_terminate(Reason, _Parent, Dbg, State) ->
 
 
 
-run_callback2(Dbg, State, Mod, Func, Args) ->
+run_callback2(Dbg, #?STATE{metadata = SMD}=State, Mod, Func, Args) ->
     Ret2 =
         case catch erlang:apply(Mod, Func, Args) of
             ok ->
-                {ok, Dbg, State};
+                {ok
+                ,Dbg
+                ,State#?STATE{metadata =
+                              SMD#?SMD{last_callback = Func}}};
             {ok, Opts} ->
                 get_options(Dbg, State, Opts);
             close ->
-                {close, Dbg, State};
+                {close
+                ,Dbg
+                ,State#?STATE{metadata =
+                              SMD#?SMD{last_callback = Func}}};
             {close, Opts} ->
                 case get_options(Dbg, State, Opts) of
                     {ok, Dbg2, State2}  ->
-                        {close, Dbg2, State2};
+                        {close
+                        ,Dbg2
+                        ,State2#?STATE{metadata =
+                                       SMD#?SMD{last_callback = Func}}};
                     {error, _Reason}=Error ->
                         Error
                 end;
             {stop, Reason} ->
-                {stop, Dbg, State, Reason};
+                {stop
+                ,Dbg
+                ,State#?STATE{metadata = SMD#?SMD{last_callback = Func}}
+                ,Reason};
             {stop, Reason, Opts} ->
                 case get_options(Dbg, State, Opts) of
                     {ok, Dbg2, State2}  ->
-                        {stop, Dbg2, State2, Reason};
+                        {stop
+                        ,Dbg2
+                        ,State2#?STATE{metadata =
+                                       SMD#?SMD{last_callback = Func}}
+                        ,Reason};
                     {error, _Reason}=Error ->
                         Error
                 end;
@@ -539,47 +548,52 @@ get_options(Dbg, State, [{state, Data} | Opts]) ->
     get_options(Dbg, State#?STATE{data = Data}, Opts);
 
 get_options(Dbg
-           ,State
+           ,#?STATE{metadata = SMD}=State
            ,[{timeout, Timeout}
             |Opts]) when erlang:is_integer(Timeout) ->
     if
         Timeout >= 0 ->
-            get_options(Dbg, State#?STATE{timeout = Timeout}, Opts);
+            get_options(Dbg
+                       ,State#?STATE{metadata =
+                                     SMD#?SMD{timeout = Timeout}}
+                       ,Opts);
         true ->
             {error, {timeout_range, [{timeout, Timeout}]}}
     end;
 
 get_options(Dbg
-           ,State
+           ,#?STATE{metadata = SMD}=State
            ,[{timeout, infinity} |Opts]) ->
-    get_options(Dbg, State#?STATE{timeout = infinity}, Opts);
+    get_options(Dbg
+               ,State#?STATE{metadata = SMD#?SMD{timeout = infinity}}
+               ,Opts);
 
 get_options(Dbg
-           ,State
+           ,#?STATE{metadata = SMD}=State
            ,[{srtimeout, SRTimeout}
             |Opts]) when erlang:is_integer(SRTimeout) ->
     if
         SRTimeout >= 0 ->
             get_options(Dbg
-                       ,State#?STATE{srtimeout = SRTimeout}
+                       ,State#?STATE{metadata =
+                                     SMD#?SMD{srtimeout = SRTimeout}}
                        ,Opts);
         true ->
             {error, {srtimeout_range, [{srtimeout, SRTimeout}]}}
     end;
 
 get_options(Dbg
-           ,State
-           ,[{srtimeout, infinity}
-            |Opts]) ->
+           ,#?STATE{metadata = SMD}=State
+           ,[{srtimeout, infinity} |Opts]) ->
     get_options(Dbg
-               ,State#?STATE{srtimeout = infinity}
+               ,State#?STATE{metadata = SMD#?SMD{srtimeout = infinity}}
                ,Opts);
 
 get_options(Dbg
            ,#?STATE{name = Name
-                   ,socket = Sock
-                   ,transporter = TrMod
-                   ,options = Opts}=State
+                   ,metadata = #?SMD{socket = Sock
+                                    ,transporter = TrMod
+                                    ,options = Opts}}=State
            ,[{packet, Pkt} | Opts2]) ->
     case socket_send(TrMod, Sock, Name, Dbg, Pkt, Opts) of
         {ok, Dbg2} ->
@@ -589,11 +603,13 @@ get_options(Dbg
     end;
 
 get_options(Dbg
-           ,State
+           ,#?STATE{metadata = SMD}=State
            ,[{length, Len} |Opts]) when erlang:is_integer(Len) ->
     if
         Len >= 0 ->
-            get_options(Dbg, State#?STATE{length = Len}, Opts);
+            get_options(Dbg
+                       ,State#?STATE{metadata = SMD#?SMD{length = Len}}
+                       ,Opts);
         true ->
             {error, {length_range, [{length, Len}]}}
     end;
@@ -607,19 +623,23 @@ get_options(Dbg, State, []) ->
     {ok, Dbg, State};
 
 get_options(Dbg
-           ,State
+           ,#?STATE{metadata = SMD}=State
            ,[{transporter, TrMod}|Opts]) when erlang:is_atom(TrMod) ->
-    get_options(Dbg, State#?STATE{transporter = TrMod}, Opts);
+    get_options(Dbg
+               ,State#?STATE{metadata = SMD#?SMD{transporter = TrMod}}
+               ,Opts);
 
 get_options(Dbg
-           ,State
+           ,#?STATE{metadata = SMD}=State
            ,[{socket, Sock}|Opts]) ->
-    get_options(Dbg, State#?STATE{socket = Sock}, Opts);
+    get_options(Dbg
+               ,State#?STATE{metadata = SMD#?SMD{socket = Sock}}
+               ,Opts);
 
 get_options(Dbg
-           ,#?STATE{transporter = TrMod
-                   ,socket = Sock
-                   ,options = Opts}=State
+           ,#?STATE{metadata = #?SMD{transporter = TrMod
+                                    ,socket = Sock
+                                    ,options = Opts}}=State
            ,[{setopts, SockOpts}
             |Opts2]) when erlang:is_list(SockOpts) ->
     case sockerl_utils:filter_socket_options(SockOpts) of
@@ -676,12 +696,12 @@ loop(Parent
     ,Dbg
     ,#?STATE{name = Name
             ,active = false
-            ,socket = Sock
-            ,length = Len
-            ,srtimeout = RTimeout
-            ,transporter = TrMod
-            ,options = Opts}=State) ->
-    case socket_receive(TrMod, Sock, Name, Dbg, Len, RTimeout, Opts) of
+            ,metadata = #?SMD{socket =Sock
+                             ,length = Len
+                             ,srtimeout = SRTimeout
+                             ,transporter = TrMod
+                             ,options = Opts}}=State) ->
+    case socket_receive(TrMod, Sock, Name, Dbg, Len, SRTimeout, Opts) of
         {ok, Dbg2, Packet} ->
             {Dbg3, State2} = run_callback(Dbg2
                                          ,State
@@ -713,42 +733,19 @@ loop(Parent, Dbg, State) ->
 
 
 run_callback(Dbg
-            ,#?STATE{socket = Sock
-                    ,length = Len
-                    ,srtimeout = SRTimeout
-                    ,module = Mod
+            ,#?STATE{module = Mod
                     ,data= Data
-                    ,timeout = Timeout
-                    ,transporter = TrMod
-                    ,options = Opts}=State
+                    ,metadata = SMD}=State
             ,Callback
             ,Args) ->
     Args2 =
         case Args of
             {} ->
-                [Data, sockerl_metadata:wrap(Sock
-                                            ,Timeout
-                                            ,SRTimeout
-                                            ,Len
-                                            ,TrMod
-                                            ,Opts)];
+                [Data, SMD];
             {Arg} ->
-                [Arg, Data, sockerl_metadata:wrap(Sock
-                                                 ,Timeout
-                                                 ,SRTimeout
-                                                 ,Len
-                                                 ,TrMod
-                                                 ,Opts)];
+                [Arg, Data, SMD];
             {Arg1, Arg2} ->
-                [Arg1
-                ,Arg2
-                ,Data
-                ,sockerl_metadata:wrap(Sock
-                                      ,Timeout
-                                      ,SRTimeout
-                                      ,Len
-                                      ,TrMod
-                                      ,Opts)]
+                [Arg1, Arg2, Data, SMD]
         end,
     case run_callback2(Dbg, State, Mod, Callback, Args2) of
         {ok, Dbg2, State2} ->
@@ -767,8 +764,8 @@ run_callback(Dbg
 
 
 
-socket_receive(TrMod, Sock, Name, Dbg, Len, RecvTimeout, Opts) ->
-    case sockerl_socket:recv(TrMod, Sock, Len, RecvTimeout, Opts) of
+socket_receive(TrMod, Sock, Name, Dbg, Len, SRTimeout, Opts) ->
+    case sockerl_socket:recv(TrMod, Sock, Len, SRTimeout, Opts) of
         {ok, Packet} ->
             {ok, debug(Name, Dbg, {socket_in, Packet}), Packet};
         {error, _Reason}=Error ->
@@ -795,10 +792,16 @@ socket_send(TrMod, Sock, Name,  Dbg, Packet, Opts) ->
 
 
 
-do_receive(Parent, Dbg, #?STATE{timeout = Timeout}=State) ->
+do_receive(Parent
+          ,Dbg
+          ,#?STATE{metadata = #?SMD{timeout = Timeout}=SMD}=State) ->
     receive
         Msg ->
-            process_message(Parent, Dbg, State, Msg)
+            process_message(Parent
+                           ,Dbg
+                           ,State#?STATE{metadata =
+                                         SMD#?SMD{last_message = Msg}}
+                           ,Msg)
     after Timeout ->
         {Dbg2, State2} = run_callback(Dbg, State, timeout, {}),
         loop(Parent, Dbg2, State2)
@@ -868,8 +871,8 @@ process_message(Parent, Dbg, State, {'EXIT', Parent, Reason}) ->
 process_message(Parent
                ,Dbg
                ,#?STATE{name = Name
-                       ,transporter = TrMod
-                       ,options = Opts}=State
+                       ,metadata = #?SMD{transporter = TrMod
+                                        ,options = Opts}}=State
                ,Msg) ->
     case sockerl_socket:is_socket_message(TrMod, Msg, Opts) of
         {ok, Packet} ->
@@ -903,10 +906,10 @@ process_message(Parent
 
 
 process_sync_request(Dbg
-                    ,#?STATE{socket =Sock
-                            ,name = Name
-                            ,transporter = TrMod
-                            ,options = Opts}=State
+                    ,#?STATE{name = Name
+                            ,metadata = #?SMD{socket = Sock
+                                             ,transporter = TrMod
+                                             ,options = Opts}}=State
                     ,From, {send, Packet}) ->
     case socket_send(TrMod, Sock, Name,  Dbg, Packet, Opts) of
         {ok, Dbg2} ->
@@ -931,9 +934,9 @@ process_sync_request(Dbg, #?STATE{name = Name}=State, From, Other) ->
 
 process_async_request(Dbg
                      ,#?STATE{name = Name
-                             ,socket = Sock
-                             ,transporter = TrMod
-                             ,options = Opts}=State
+                             ,metadata = #?SMD{socket = Sock
+                                              ,transporter = TrMod
+                                              ,options = Opts}}=State
                      ,{send, Packet}) ->
     case socket_send(TrMod, Sock, Name,  Dbg, Packet, Opts) of
         {ok, Dbg2} ->
@@ -966,22 +969,12 @@ terminate(Dbg
          ,#?STATE{module = Mod
                  ,data = Data
                  ,name = Name
-                 ,socket = Sock
-                 ,timeout = Timeout
-                 ,length = Len
-                 ,srtimeout = SRTimeout
-                 ,transporter = TrMod
-                 ,options = Opts}
+                 ,metadata = #?SMD{socket = Sock
+                                  ,transporter = TrMod
+                                  ,options = Opts}=SMD}
          ,Reason) ->
     Reason2 =
-        case catch Mod:terminate(Reason
-                                ,Data
-                                ,sockerl_metadata:wrap(Sock
-                                                      ,Timeout
-                                                      ,SRTimeout
-                                                      ,Len
-                                                      ,TrMod
-                                                      ,Opts)) of
+        case catch Mod:terminate(Reason, Data, SMD) of
             {'EXIT', Reason3} ->
                 {Reason, Reason3};
             _Other ->

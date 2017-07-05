@@ -53,14 +53,17 @@
 
 
 %% API:
--export([wrap/6
+-export([wrap/8
         ,unwrap/1
+
         ,get_socket/1
         ,get_timeout/1
         ,get_srtimeout/1
         ,get_length/1
         ,get_transporter/1
-        ,get_options/1]).
+        ,get_options/1
+        ,get_last_message/1
+        ,get_last_callback/1]).
 
 
 
@@ -92,15 +95,19 @@ wrap(sockerl_types:socket()
     ,timeout()
     ,sockerl_types:length()
     ,module()
-    ,sockerl_types:start_options()) ->
+    ,sockerl_types:start_options()
+    ,any()
+    ,atom()) ->
     sockerl_types:metadata().
-wrap(Sock, Timeout, SRTimeout, Len, TrMod, Opts) ->
+wrap(Sock, Timeout, SRTimeout, Len, TrMod, Opts, LMsg, LCB) ->
     #sockerl_metadata{socket = Sock
                      ,timeout = Timeout
                      ,length = Len
                      ,srtimeout = SRTimeout
                      ,transporter = TrMod
-                     ,options = Opts}.
+                     ,options = Opts
+                     ,last_message = LMsg
+                     ,last_callback = LCB}.
 
 
 
@@ -115,14 +122,18 @@ unwrap(sockerl_types:metadata()) ->
     ,timeout()
     ,sockerl_types:length()
     ,module()
-    ,sockerl_types:start_options()}.
+    ,sockerl_types:start_options()
+    ,any()
+    ,atom()}.
 unwrap(#sockerl_metadata{socket = Sock
                         ,timeout = Timeout
                         ,length = Len
                         ,srtimeout = SRTimeout
                         ,transporter = TrMod
-                        ,options = Opts}) ->
-    {Sock, Timeout, Len, SRTimeout, TrMod, Opts}.
+                        ,options = Opts
+                        ,last_message = LMsg
+                        ,last_callback = LCB}) ->
+    {Sock, Timeout, Len, SRTimeout, TrMod, Opts, LMsg, LCB}.
 
 
 
@@ -195,3 +206,27 @@ get_options(sockerl_types:metadata()) ->
     sockerl_types:start_options().
 get_options(#sockerl_metadata{options = Opts}) ->
     Opts.
+
+
+
+
+
+
+
+-spec
+get_last_message(sockerl_types:metadata()) ->
+    any().
+get_last_message(#sockerl_metadata{last_message = LMsg}) ->
+    LMsg.
+
+
+
+
+
+
+
+-spec
+get_last_callback(sockerl_types:metadata()) ->
+    atom().
+get_last_callback(#sockerl_metadata{last_callback = LCB}) ->
+    LCB.
