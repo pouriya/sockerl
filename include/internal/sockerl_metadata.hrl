@@ -3,4 +3,6 @@
                           ,length
                           ,srtimeout
                           ,transporter
-                          ,options}).
+                          ,options
+                          ,last_message
+                          ,last_callback}).
