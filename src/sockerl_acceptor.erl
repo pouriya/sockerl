@@ -187,7 +187,7 @@ get_mode(Acc) ->
 
 -spec
 change_mode(sockerl_types:name()) ->
-    'ok'.
+    'sleep' | 'accept'.
 change_mode(Acc) ->
     gen_server:call(Acc, ?CHANGE_MODE).
 
@@ -391,7 +391,7 @@ process_request(Dbg
             ?ACCEPT ->
                 ?SLEEP
         end,
-    {reply(Name, debug(Name, Dbg, {?CHANGE_MODE, Mode2}), From, ok)
+    {reply(Name, debug(Name, Dbg, {?CHANGE_MODE, Mode2}), From, Mode2)
     ,State#?STATE{mode = Mode2}};
 
 process_request(Dbg, #?STATE{name = Name}=State, From, Other) ->
