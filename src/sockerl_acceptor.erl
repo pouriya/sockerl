@@ -57,7 +57,8 @@
 -export([start_link/3
         ,sleep/1
         ,wakeup/1
-        ,get_mode/1]).
+        ,get_mode/1
+        ,change_mode/1]).
 
 
 
@@ -109,6 +110,7 @@
 -define(SLEEP, 'sleep').
 -define(ACCEPT, 'accept').
 -define(GET_MODE, 'get_mode').
+-define(CHANGE_MODE, 'change_mode').
 -define(GEN_CALL_TAG, '$gen_call').
 
 -define(DEFAULT_DEBUG, []).
@@ -176,6 +178,18 @@ get_mode(sockerl_types:name()) ->
     'sleep' | 'accept'.
 get_mode(Acc) ->
     gen_server:call(Acc, ?GET_MODE).
+
+
+
+
+
+
+
+-spec
+change_mode(sockerl_types:name()) ->
+    'ok'.
+change_mode(Acc) ->
+    gen_server:call(Acc, ?CHANGE_MODE).
 
 
 
@@ -356,16 +370,29 @@ process_message(_Parent
 
 
 process_request(Dbg, #?STATE{name = Name}=State, From, ?SLEEP) ->
-    {reply(Name, debug(Name, Dbg, {change_mode, ?SLEEP}), From, ok)
+    {reply(Name, debug(Name, Dbg, {?CHANGE_MODE, ?SLEEP}), From, ok)
     ,State#?STATE{mode = ?SLEEP}};
 process_request(Dbg, #?STATE{name = Name}=State, From, ?ACCEPT) ->
-    {reply(Name, debug(Name, Dbg, {change_mode, ?ACCEPT}), From, ok)
+    {reply(Name, debug(Name, Dbg, {?CHANGE_MODE, ?ACCEPT}), From, ok)
     ,State#?STATE{mode = ?ACCEPT}};
 process_request(Dbg
                ,#?STATE{name = Name, mode = Mode}=State
                ,From
                ,?GET_MODE) ->
     {reply(Name, debug(Name, Dbg, ?GET_MODE), From, Mode), State};
+process_request(Dbg
+               ,#?STATE{name = Name, mode = Mode}=State
+               ,From
+               ,?CHANGE_MODE) ->
+    Mode2 =
+        case Mode of
+            ?SLEEP ->
+                ?ACCEPT;
+            ?ACCEPT ->
+                ?SLEEP
+        end,
+    {reply(Name, debug(Name, Dbg, {?CHANGE_MODE, Mode2}), From, ok)
+    ,State#?STATE{mode = Mode2}};
 
 process_request(Dbg, #?STATE{name = Name}=State, From, Other) ->
     {reply(Name, Dbg, From, {error, {unknown_call, [{call, Other}]}})
@@ -527,7 +554,7 @@ handle_debug(IODev, {?GEN_CALL_TAG, {Pid, _Tag}, Msg}, Name) ->
               "~p\"~n"
              ,[Name, Msg, Pid]);
 
-handle_debug(IODev, {change_mode, Mode}, Name) ->
+handle_debug(IODev, {?CHANGE_MODE, Mode}, Name) ->
     io:format(IODev
              ,"*DBG* Sockerl acceptor \"~p\" changed mod to \"~p\"~n"
              ,[Name, Mode]);
