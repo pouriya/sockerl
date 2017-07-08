@@ -57,6 +57,7 @@
         ,start_link/6
         ,add/2
         ,fetch/1
+        ,fetch_random/1
         ,stop/1
         ,stop/2]).
 
@@ -223,6 +224,25 @@ fetch(ConSup) ->
 
 
 -spec
+fetch_random(sockerl_types:name()) ->
+    {sockerl_types:socket(), pid()} | 'empty'.
+fetch_random(ConSup) ->
+    case director:get_pids(ConSup) of
+        [] ->
+            empty;
+        [Con] ->
+            Con;
+        Cons ->
+            choose_random(Cons)
+    end.
+
+
+
+
+
+
+
+-spec
 add(sockerl_types:name(), sockerl_types:socket()) ->
     sockerl_types:start_return().
 %% @doc
@@ -320,3 +340,17 @@ init({Mod, InitArg, Host, Port, Opts}) when erlang:is_list(Opts) ->
                   ,plan => ConPlan
                   ,type => worker} || Count <- lists:seq(1, ConCount)],
     {ok, ChildSpecs}.
+
+
+
+
+
+%% ---------------------------------------------------------------------
+%% Internal functions:
+
+
+
+
+
+choose_random(List) ->
+    lists:nth(crypto:rand_uniform(1, erlang:length(List)+1), List).
