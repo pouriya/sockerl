@@ -56,7 +56,8 @@
 %% API:
 -export([start_link/3
         ,sleep/1
-        ,wakeup/1]).
+        ,wakeup/1
+        ,get_mode/1]).
 
 
 
@@ -107,6 +108,7 @@
 -define(DEFAULT_TRANSPORT_MODULE, 'sockerl_tcp_transporter').
 -define(SLEEP, 'sleep').
 -define(ACCEPT, 'accept').
+-define(GET_MODE, 'get_mode').
 -define(GEN_CALL_TAG, '$gen_call').
 
 -define(DEFAULT_DEBUG, []).
@@ -162,6 +164,18 @@ wakeup(sockerl_types:name()) ->
     ok.
 wakeup(Acc) ->
     gen_server:call(Acc, ?ACCEPT).
+
+
+
+
+
+
+
+-spec
+get_mode(sockerl_types:name()) ->
+    'sleep' | 'accept'.
+get_mode(Acc) ->
+    gen_server:call(Acc, ?GET_MODE).
 
 
 
@@ -347,6 +361,12 @@ process_request(Dbg, #?STATE{name = Name}=State, From, ?SLEEP) ->
 process_request(Dbg, #?STATE{name = Name}=State, From, ?ACCEPT) ->
     {reply(Name, debug(Name, Dbg, {change_mode, ?ACCEPT}), From, ok)
     ,State#?STATE{mode = ?ACCEPT}};
+process_request(Dbg
+               ,#?STATE{name = Name, mode = Mode}=State
+               ,From
+               ,?GET_MODE) ->
+    {reply(Name, debug(Name, Dbg, ?GET_MODE), From, Mode), State};
+
 process_request(Dbg, #?STATE{name = Name}=State, From, Other) ->
     {reply(Name, Dbg, From, {error, {unknown_call, [{call, Other}]}})
     ,State}.
@@ -512,6 +532,12 @@ handle_debug(IODev, {change_mode, Mode}, Name) ->
              ,"*DBG* Sockerl acceptor \"~p\" changed mod to \"~p\"~n"
              ,[Name, Mode]);
 
+handle_debug(IODev, ?GET_MODE, Name) ->
+    io:format(IODev
+             ,"*DBG* Sockerl acceptor \"~p\" got request for getting it"
+              "s mode~n"
+             ,[Name]);
+
 handle_debug(IODev, {in, Msg}, Name) ->
     io:format(IODev
              ,"*DBG* Sockerl acceptor \"~p\" got message \"~p\"~n"
@@ -545,9 +571,9 @@ handle_debug(IODev, Event, Name) ->
 
 
 
-filter_mode(accept) ->
+filter_mode(?ACCEPT) ->
     ok;
-filter_mode(sleep) ->
+filter_mode(?SLEEP) ->
     ok;
 filter_mode(Other) ->
     {error, {mode, [{mode, Other}]}}.

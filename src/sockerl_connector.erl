@@ -379,11 +379,7 @@ init_it(Starter, Parent, Name, Mod, {InitArg, Sock}, Opts) ->
                               ,[InitArg, SMD]) of
                 {ok, Dbg3, State2} ->
                     proc_lib:init_ack(Starter, {ok, erlang:self()}),
-                    loop(Parent
-                        ,Dbg3
-                        ,State2#?STATE{metadata =
-                                       SMD#?SMD{last_callback =
-                                                connector_init}});
+                    loop(Parent, Dbg3, State2);
 
                 {close, _Dbg3, _State2} ->
                     _ = sockerl_socket:close(TrMod, Sock, Opts),

@@ -4,7 +4,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("common_test/include/ct.hrl").
 -define(HOST, "127.0.0.1").
--define(PORT, 8080).
+-define(PORT, 1995).
 -define(REUSE_ADDR, {reuseaddr, true}).
 -define(REUSE_ADDR_START_OPTIONS, [{socket_options, [?REUSE_ADDR]}]).
 -define(ACC_DBG, {acceptor_debug, [trace]}).
@@ -50,13 +50,10 @@ all() ->
     Res2 = sockerl_server_sup:fetch_acceptors(SPid),
     ?assertMatch([{1, _Pid}], Res2),
     [{_, AccPid}] = Res2,
-    AccState = sys:get_state(AccPid),
-    ?assertEqual(accept, erlang:element(5, AccState)),
+    ?assertEqual(accept, sockerl_acceptor:get_mode(AccPid)),
     ?assertEqual(ok, sockerl:sleep_acceptors(SPid)),
-    AccState2 = sys:get_state(AccPid),
-    ?assertEqual(sleep, erlang:element(5, AccState2)),
+    ?assertEqual(sleep, sockerl_acceptor:get_mode(AccPid)),
     ?assertEqual(ok, sockerl:wakeup_acceptors(SPid)),
-    ?assertEqual(AccState, sys:get_state(AccPid)),
     ?assertEqual(ok, sockerl:stop_server(SPid)),
     ?assertEqual(false, erlang:is_process_alive(SPid)),
 
@@ -126,6 +123,7 @@ all() ->
         end,
     CallerPid = erlang:spawn(CallerFun),
     io:format("1~n"),
+
     receive
         {sockerl_server, handle_call, Ref5, call_req, {CallerPid, _}=Tag, _, _} ->
             SConPid ! {Ref5, {ok, [{reply, Tag, done}]}},
@@ -240,6 +238,14 @@ all() ->
     ?assertMatch([{_SConSock, _SConPid}], SCons),
     [{_, SConPid}] = SCons,
     io:format("1~n"),
+%%    receive
+%%        Msg ->
+%%            io:format("~p~n", [Msg])
+%%    end,
+%%    receive
+%%        Msg2 ->
+%%            io:format("~p~n", [Msg2])
+%%    end,
     receive
         {sockerl_server, handle_packet, Ref, "1", _, _} ->
             SConPid ! {Ref, {ok, [{packet, ""}, {timeout, 0}, {length, 0}]}}
