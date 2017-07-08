@@ -1,4 +1,4 @@
-![sockerl build](https://travis-ci.org/Pouriya-Jahanbakhsh/sockerl.svg?branch=master)
+![sockerl build](https://travis-ci.org/Pouriya-Jahanbakhsh/sockerl.png?branch=master)
 
 # SockErl
 This is advanced Erlang socket library for TCP protocols and provides fast, useful and simple API for implementing server, connector and connector pool.
