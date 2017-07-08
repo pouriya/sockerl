@@ -104,6 +104,8 @@
 
 -type metadata() :: #sockerl_metadata{}.
 
+-type acceptor_mode() :: 'accept' | 'sleep'.
+
 
 
 
@@ -121,4 +123,5 @@
              ,shutdown_type/0
              ,error_info/0
              ,length/0
-             ,metadata/0]).
+             ,metadata/0
+             ,acceptor_mode/0]).

@@ -151,7 +151,7 @@ start_link(Opts, ListenSock, ConSup) ->
 
 -spec
 sleep(sockerl_types:name()) ->
-    ok.
+    'ok'.
 sleep(Acc) ->
     gen_server:call(Acc, ?SLEEP).
 
@@ -163,7 +163,7 @@ sleep(Acc) ->
 
 -spec
 wakeup(sockerl_types:name()) ->
-    ok.
+    'ok'.
 wakeup(Acc) ->
     gen_server:call(Acc, ?ACCEPT).
 
@@ -175,7 +175,7 @@ wakeup(Acc) ->
 
 -spec
 get_mode(sockerl_types:name()) ->
-    'sleep' | 'accept'.
+    sockerl_types:acceptor_mode().
 get_mode(Acc) ->
     gen_server:call(Acc, ?GET_MODE).
 
@@ -187,7 +187,7 @@ get_mode(Acc) ->
 
 -spec
 change_mode(sockerl_types:name()) ->
-    'sleep' | 'accept'.
+    sockerl_types:acceptor_mode().
 change_mode(Acc) ->
     gen_server:call(Acc, ?CHANGE_MODE).
 

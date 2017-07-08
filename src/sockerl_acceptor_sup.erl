@@ -140,7 +140,8 @@ wakeup(AccSup) ->
 
 -spec
 get_mode(sockerl_types:name()) ->
-    'sleep' | 'accept' | [{pos_integer(), 'sleep' | 'accept'}].
+    sockerl_types:acceptor_mode()                   |
+    [{pos_integer(), sockerl_types:acceptor_mode()}].
 get_mode(AccSup) ->
     Modes =
         [{Id, sockerl_acceptor:get_mode(Pid)}
@@ -155,7 +156,7 @@ get_mode(AccSup) ->
 
 -spec
 change_mode(sockerl_types:name()) ->
-    'sleep' | 'accept' | 'not_allowed'.
+    sockerl_types:acceptor_mode() | 'not_allowed'.
 change_mode(AccSup) ->
     case get_mode(AccSup) of
         Modes when erlang:is_list(Modes) ->

@@ -483,7 +483,8 @@ wakeup_acceptors(Server) ->
 
 -spec
 get_acceptor_modes(sockerl_types:name()) ->
-    'sleep' | 'accept' | [{pos_integer(), 'sleep' | 'accept'}].
+    sockerl_types:acceptor_mode()                   |
+    [{pos_integer(), sockerl_types:acceptor_mode()}].
 %% @doc
 %%      Returns mode(s) of server acceptors.
 %% @end
@@ -498,7 +499,7 @@ get_acceptor_modes(Server) ->
 
 -spec
 change_acceptor_modes(sockerl_types:name()) ->
-    'sleep' | 'accept' | 'not_allowed'.
+    sockerl_types:acceptor_mode() | 'not_allowed'.
 change_acceptor_modes(Server) ->
     sockerl_acceptor_sup:change_mode(Server).
 
