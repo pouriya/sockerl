@@ -1,10 +1,9 @@
 -module(sockerl_SUITE).
--author("p").
 -compile(export_all).
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("common_test/include/ct.hrl").
 -define(HOST, "127.0.0.1").
--define(PORT, 1995).
+-define(PORT, 8080).
 -define(REUSE_ADDR, {reuseaddr, true}).
 -define(REUSE_ADDR_START_OPTIONS, [{socket_options, [?REUSE_ADDR]}]).
 -define(ACC_DBG, {acceptor_debug, [trace]}).
