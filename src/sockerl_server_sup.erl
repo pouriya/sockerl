@@ -59,6 +59,7 @@
 
         ,sleep_acceptors/1
         ,wakeup_acceptors/1
+        ,get_acceptor_modes/1
 
         ,stop/1
         ,stop/2]).
@@ -228,6 +229,19 @@ wakeup_acceptors(sockerl_types:name()) ->
 wakeup_acceptors(Server) ->
     {ok, Pid} = director:get_pid(Server, ?ACCEPTOR_SUP),
     sockerl_acceptor_sup:wakeup(Pid).
+
+
+
+
+
+
+
+-spec
+get_acceptor_modes(sockerl_types:name()) ->
+    'sleep' | 'accept' | [{pos_integer(), 'sleep' | 'accept'}].
+get_acceptor_modes(Server) ->
+    {ok, Pid} = director:get_pid(Server, ?ACCEPTOR_SUP),
+    sockerl_acceptor_sup:get_mode(Pid).
 
 
 

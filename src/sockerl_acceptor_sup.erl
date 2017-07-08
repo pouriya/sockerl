@@ -54,7 +54,8 @@
 -export([start_link/2
         ,fetch/1
         ,sleep/1
-        ,wakeup/1]).
+        ,wakeup/1
+        ,get_mode/1]).
 
 
 
@@ -137,6 +138,21 @@ wakeup(AccSup) ->
 
 
 -spec
+get_mode(sockerl_types:name()) ->
+    'sleep' | 'accept' | [{pos_integer(), 'sleep' | 'accept'}].
+get_mode(AccSup) ->
+    Modes =
+        [{Id, sockerl_acceptor:get_mode(Pid)}
+        || {Id, Pid} <- fetch(AccSup)],
+    get_mode_fix_return(Modes).
+
+
+
+
+
+
+
+-spec
 add(Pool::sockerl_types:name(), sockerl_types:name(), term()) ->
     sockerl_types:start_return().
 add(ConSup, AccSup, Id) ->
@@ -167,3 +183,32 @@ init({Opts, LSock}) ->
                 ,start_link
                 ,[Opts, LSock]}
       ,plan => [stop]}}.
+
+
+
+
+
+%% ---------------------------------------------------------------------
+%% Internal functions:
+
+
+
+
+
+get_mode_fix_return([{_, Mode}|Modes]=Modes2) ->
+    get_mode_fix_return(Modes, Modes2, Mode).
+
+
+
+
+
+
+
+get_mode_fix_return([{_, Mode}|Modes], Modes2, Mode) ->
+    get_mode_fix_return(Modes, Modes2, Mode);
+
+get_mode_fix_return([], _Modes, Mode) ->
+    Mode;
+
+get_mode_fix_return([_|_Modes], Modes2, _Mode) ->
+    Modes2.
