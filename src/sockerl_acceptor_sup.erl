@@ -55,7 +55,8 @@
         ,fetch/1
         ,sleep/1
         ,wakeup/1
-        ,get_mode/1]).
+        ,get_mode/1
+        ,change_mode/1]).
 
 
 
@@ -145,6 +146,24 @@ get_mode(AccSup) ->
         [{Id, sockerl_acceptor:get_mode(Pid)}
         || {Id, Pid} <- fetch(AccSup)],
     get_mode_fix_return(Modes).
+
+
+
+
+
+
+
+-spec
+change_mode(sockerl_types:name()) ->
+    'sleep' | 'accept' | 'not_allowed'.
+change_mode(AccSup) ->
+    case get_mode(AccSup) of
+        Modes when erlang:is_list(Modes) ->
+            not_allowed;
+        _Mode ->
+            erlang:hd([sockerl_acceptor:change_mode(Pid)
+                      || {_Id, Pid} <- fetch(AccSup)])
+    end.
 
 
 

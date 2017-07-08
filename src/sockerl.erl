@@ -61,6 +61,7 @@
         ,sleep_acceptors/1
         ,wakeup_acceptors/1
         ,get_acceptor_modes/1
+        ,change_acceptor_modes/1
         ,get_server_connections/1
 
         ,start_link_connector_pool/4
@@ -488,6 +489,18 @@ get_acceptor_modes(sockerl_types:name()) ->
 %% @end
 get_acceptor_modes(Server) ->
     sockerl_server_sup:get_acceptor_modes(Server).
+
+
+
+
+
+
+
+-spec
+change_acceptor_modes(sockerl_types:name()) ->
+    'sleep' | 'accept' | 'not_allowed'.
+change_acceptor_modes(Server) ->
+    sockerl_acceptor_sup:change_mode(Server).
 
 
 
