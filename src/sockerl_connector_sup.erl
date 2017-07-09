@@ -54,11 +54,17 @@
 -export([start_link/3
         ,start_link/4
         ,start_link/5
-        ,start_link/6
         ,add/2
         ,fetch/1
         ,stop/1
         ,stop/2]).
+
+
+
+
+
+%% 'sockerl_server_connection_sup' callback:
+-export([start_link_/3]).
 
 
 
@@ -97,38 +103,19 @@
 
 
 -spec
-start_link(module(), term(), sockerl_types:start_options()) ->
-    sockerl_types:start_return().
-%% @doc
-%%      starts and links a supervisor for supervising incoming
-%%      connections of server.
-%% @end
-start_link(Mod, InitArg, Opts) when erlang:is_atom(Mod) andalso
-                                    erlang:is_list(Opts) ->
-    director:start_link(?MODULE, {Mod, InitArg, Opts}).
-
-
-
-
-
-
-
--spec
 start_link(module()
           ,term()
-          ,sockerl_types:host()
-          ,sockerl_types:port_number()) ->
+          ,sockerl_types:addresses()) ->
     sockerl_types:start_return().
 %% @doc
 %%      starts and links a connection pool supervisor.
 %% @end
-start_link(Mod, InitArg, Host, Port) when erlang:is_atom(Mod),
-                                          erlang:is_integer(Port) ->
+start_link(Mod, InitArg, Addrs) when erlang:is_atom(Mod),
+                                     erlang:is_list(Addrs) ->
     director:start_link(?MODULE
                        ,{Mod
                         ,InitArg
-                        ,Host
-                        ,Port
+                        ,Addrs
                         ,?DEFAULT_START_OPTIONS}).
 
 
@@ -140,10 +127,8 @@ start_link(Mod, InitArg, Host, Port) when erlang:is_atom(Mod),
 -spec
 start_link(sockerl_types:register_name() | module()
           ,module() | term()
-          ,term() | sockerl_types:host()
-          ,sockerl_types:host() | sockerl_types:port_number()
-          ,sockerl_types:port_number() |
-           sockerl_types:start_options()) ->
+          ,term() | sockerl_types:addresses()
+          ,sockerl_types:addresses() | sockerl_types:start_options()) ->
     sockerl_types:start_return().
 %% @doc
 %%      starts and links a connection pool supervisor.
@@ -151,25 +136,22 @@ start_link(sockerl_types:register_name() | module()
 start_link(Name
           ,Mod
           ,InitArg
-          ,Host
-          ,Port) when erlang:is_tuple(Name),
-                      erlang:is_atom(Mod),
-                      erlang:is_integer(Port) ->
+          ,Addrs) when erlang:is_tuple(Name),
+                       erlang:is_atom(Mod),
+                       erlang:is_list(Addrs) ->
     director:start_link(Name
                        ,?MODULE
                        ,{Mod
                         ,InitArg
-                        ,Host
-                        ,Port
+                        ,Addrs
                         ,?DEFAULT_START_OPTIONS});
 start_link(Mod
           ,InitArg
-          ,Host
-          ,Port
+          ,Addrs
           ,Opts) when erlang:is_atom(Mod),
-                      erlang:is_integer(Port),
+                      erlang:is_list(Addrs),
                       erlang:is_list(Opts) ->
-    director:start_link(?MODULE, {Mod, InitArg, Host, Port, Opts}).
+    director:start_link(?MODULE, {Mod, InitArg, Addrs, Opts}).
 
 
 
@@ -181,8 +163,7 @@ start_link(Mod
 start_link(sockerl_types:register_name()
           ,module()
           ,term()
-          ,sockerl_types:host()
-          ,sockerl_types:port_number()
+          ,sockerl_types:addresses()
           ,sockerl_types:start_options()) ->
     sockerl_types:start_return().
 %% @doc
@@ -191,15 +172,14 @@ start_link(sockerl_types:register_name()
 start_link(Name
           ,Mod
           ,InitArg
-          ,Host
-          ,Port
+          ,Addrs
           ,Opts) when erlang:is_tuple(Name),
                       erlang:is_atom(Mod),
-                      erlang:is_integer(Port),
+                      erlang:is_list(Addrs),
                       erlang:is_list(Opts) ->
     director:start_link(Name
                        ,?MODULE
-                       ,{Mod, InitArg, Host, Port, Opts}).
+                       ,{Mod, InitArg, Addrs, Opts}).
 
 
 
@@ -273,6 +253,22 @@ stop(Server, Reason) ->
 
 
 %% ---------------------------------------------------------------------
+%% 'sockerl_server_connection_sup' callback:
+
+
+
+
+
+%% @hidden
+start_link_(Mod, InitArg, Opts) when erlang:is_atom(Mod) andalso
+    erlang:is_list(Opts) ->
+    director:start_link(?MODULE, {Mod, InitArg, Opts}).
+
+
+
+
+
+%% ---------------------------------------------------------------------
 %% 'director' callback:
 
 
@@ -297,9 +293,13 @@ init({Mod, InitArg, Opts}) ->
       ,plan => ConPlan
       ,type => worker}};
 
-init({Mod, InitArg, Host, Port, Opts}) when erlang:is_list(Opts) ->
+init({Mod, InitArg, Addrs0, Opts}) ->
+    Addrs = sockerl_utils:get_value(addresses
+                                   ,[{addresses, Addrs0}]
+                                   ,?DEFAULT_CONNECTOR_COUNT
+                                   ,fun filter_addresses/1),
     ConCount =
-        sockerl_utils:get_value(connector_count
+        sockerl_utils:get_value(connector_count_per_address
                                ,Opts
                                ,?DEFAULT_CONNECTOR_COUNT
                                ,fun sockerl_utils:is_whole_integer/1),
@@ -312,11 +312,39 @@ init({Mod, InitArg, Host, Port, Opts}) when erlang:is_list(Opts) ->
                                ,Opts
                                ,?DEFAULT_CHILDSPEC_COUNT
                                ,fun sockerl_utils:is_timeout/1),
-    ChildSpecs = [#{id => Count
-                  ,start => {sockerl_connector
-                            ,start_link
-                            ,[Mod, InitArg, Host, Port, Opts]}
-                  ,count => ConRunPlanCount
-                  ,plan => ConPlan
-                  ,type => worker} || Count <- lists:seq(1, ConCount)],
-    {ok, ChildSpecs}.
+    ChildSpecs = [[#{id => erlang:make_ref()
+                    ,start => {sockerl_connector
+                              ,start_link
+                              ,[Mod, InitArg, Host, Port, Opts]}
+                    ,count => ConRunPlanCount
+                    ,plan => ConPlan
+                    ,type => worker} || _ <- lists:seq(1, ConCount)]
+                  || {Host, Port} <- Addrs],
+    {ok, lists:concat(ChildSpecs)}.
+
+
+
+
+
+%% ---------------------------------------------------------------------
+%% Internal functions:
+
+
+
+
+
+filter_addresses(Addrs) ->
+    filter_addresses(Addrs, []).
+
+
+
+
+
+
+
+filter_addresses([{_Host, _Port}=Addr|Addrs], Addrs2) ->
+    filter_addresses(Addrs, [Addr|Addrs2]);
+filter_addresses([], Addrs2) ->
+    {ok, lists:reverse(Addrs2)};
+filter_addresses([Other|_Addrs], _Addrs) ->
+    {error, {address_format, [{address, Other}]}}.

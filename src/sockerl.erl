@@ -64,9 +64,9 @@
         ,change_acceptor_modes/1
         ,get_server_connections/1
 
+        ,start_link_connector_pool/3
         ,start_link_connector_pool/4
         ,start_link_connector_pool/5
-        ,start_link_connector_pool/6
         ,stop_pool/1
         ,stop_pool/2
         ,get_pool_connections/1
@@ -542,14 +542,13 @@ stop_server(Server, Reason) ->
 -spec
 start_link_connector_pool(module()
                          ,term()
-                         ,sockerl_types:hostname()
-                         ,sockerl_types:port_number()) ->
+                         ,sockerl_types:addresses()) ->
     sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection pool.
 %% @end
-start_link_connector_pool(Mod, InitArg, Host, Port) ->
-    sockerl_connector_sup:start_link(Mod, InitArg, Host, Port).
+start_link_connector_pool(Mod, InitArg, Addrs) ->
+    sockerl_connector_sup:start_link(Mod, InitArg, Addrs).
 
 
 
@@ -561,10 +560,8 @@ start_link_connector_pool(Mod, InitArg, Host, Port) ->
 start_link_connector_pool(sockerl_types:register_name()|
                           module()
                          ,module() | term()
-                         ,term() | sockerl_types:hostname()
-                         ,sockerl_types:hostname() | 
-                          sockerl_types:port_number()
-                         ,sockerl_types:port_number()|
+                         ,term() | sockerl_types:addresses()
+                         ,sockerl_types:addresses() |
                           sockerl_types:start_options()) ->
     sockerl_types:start_return().
 %% @doc
@@ -572,14 +569,12 @@ start_link_connector_pool(sockerl_types:register_name()|
 %% @end
 start_link_connector_pool(Name_or_Mod
                           ,Mod_or_InitArg
-                          ,InitArg_or_Host
-                          ,Host_or_Port
-                          ,Port_or_Opts) ->
+                          ,InitArg_or_Addrs
+                          ,Addrs_or_Opts) ->
     sockerl_connector_sup:start_link(Name_or_Mod
                                      ,Mod_or_InitArg
-                                     ,InitArg_or_Host
-                                     ,Host_or_Port
-                                     ,Port_or_Opts).
+                                     ,InitArg_or_Addrs
+                                     ,Addrs_or_Opts).
 
 
 
@@ -591,20 +586,14 @@ start_link_connector_pool(Name_or_Mod
 start_link_connector_pool(sockerl_types:register_name()
                          ,module()
                          ,term()
-                         ,sockerl_types:hostname()
-                         ,sockerl_types:port_number()
+                         ,sockerl_types:addresses()
                          ,sockerl_types:start_options()) ->
     sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection pool.
 %% @end
-start_link_connector_pool(Name, Mod, InitArg, Host, Port, Opts) ->
-    sockerl_connector_sup:start_link(Name
-                                     ,Mod
-                                     ,InitArg
-                                     ,Host
-                                     ,Port
-                                     ,Opts).
+start_link_connector_pool(Name, Mod, InitArg, Addrs, Opts) ->
+    sockerl_connector_sup:start_link(Name, Mod, InitArg, Addrs, Opts).
 
 
 

@@ -84,7 +84,8 @@
                        | {'connector_childspec_plan', list()}
                        | {'connector_childspec_count', non_neg_integer()
                                                      | 'infnity'}
-                       | {'connector_count', non_neg_integer()}
+                       | {'connector_count_per_address'
+                         ,non_neg_integer()}
                        | {'transporter', module()}
                        | {'connector_debug', [sys:dbg_opt()]}
                        | {'socket_options', list()}
@@ -93,6 +94,9 @@
 -type port_number() :: inet:port_number().
 
 -type host() :: inet:hostname().
+
+-type addresses() :: [] | [address()].
+-type  address() :: {host(), port()}.
 
 -type packet() :: any(). %% Depends on transporter module
 
@@ -124,4 +128,6 @@
              ,error_info/0
              ,length/0
              ,metadata/0
-             ,acceptor_mode/0]).
+             ,acceptor_mode/0
+             ,addresses/0
+             ,address/0]).

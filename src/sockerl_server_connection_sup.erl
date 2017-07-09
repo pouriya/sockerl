@@ -134,7 +134,7 @@ init({Mod, InitArg, Opts}) ->
     {ok
     ,[]
     ,#{start => {sockerl_connector_sup
-                ,start_link
+                ,start_link_
                 ,[Mod, InitArg, Opts]}
       ,plan => [stop]
       ,type => supervisor
