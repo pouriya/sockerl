@@ -84,7 +84,7 @@
                        | {'connector_childspec_plan', list()}
                        | {'connector_childspec_count', non_neg_integer()
                                                      | 'infnity'}
-                       | {'connector_count_per_address'
+                       | {'connector_per_address'
                          ,non_neg_integer()}
                        | {'transporter', module()}
                        | {'connector_debug', [sys:dbg_opt()]}
