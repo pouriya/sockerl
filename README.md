@@ -148,8 +148,8 @@ handle_call(how_much, From, Count, _SMD) ->
 
 
 handle_disconnect(_Count, _SMD) ->
-	%% If client closes connection, 
-	%% Server connection process will crash with reason 'normal'
+    %% If client closes connection, 
+    %% Server connection process will crash with reason 'normal'
     {stop, normal}.
 
 
@@ -186,7 +186,7 @@ Trying 127.0.0.1...
 Connected to 127.0.0.1.
 Escape character is '^]'.
 ```
-Get server connection again:
+Get server connections again:
 ```erlang
 3> sockerl:get_server_connections(echo_server).
 [{#Port<0.7532>,<0.116.0>}]
@@ -207,6 +207,7 @@ foo
 Server replies after sending every text.  
 Check packet count for connection:
 ```erlang
+%% Getting pid of our connection process
 4> [{_, Con}] = sockerl:get_server_connections(echo_server).
 [{#Port<0.7532>,<0.116.0>}]
 
