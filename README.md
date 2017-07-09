@@ -20,6 +20,8 @@ Sockerl is an advanced Erlang/Elixir socket library for TCP protocols and provid
 
 * Connects to multiple addresses and has multiple connections to every address in client pools.  
 
+* Add new Client(s) to existing pool.  
+
 * Clean and human-understandable error outputs.  
 
 * Accepts standard OTP [sys debug options](https://github.com/erlang/otp/blob/OTP-20.0/lib/stdlib/src/sys.erl#L46) for Acceptors and Connections for generating clean debug output.  
