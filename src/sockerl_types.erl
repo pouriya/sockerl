@@ -100,7 +100,7 @@
 
 -type error_info() :: string() | binary().
 
--type length() :: non_neg_integer().
+-type length() :: integer().
 
 -type metadata() :: #sockerl_metadata{}.
 

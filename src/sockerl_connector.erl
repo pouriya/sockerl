@@ -605,14 +605,9 @@ get_options(Dbg
 get_options(Dbg
            ,#?STATE{metadata = SMD}=State
            ,[{length, Len} |Opts]) when erlang:is_integer(Len) ->
-    if
-        Len >= 0 ->
-            get_options(Dbg
-                       ,State#?STATE{metadata = SMD#?SMD{length = Len}}
-                       ,Opts);
-        true ->
-            {error, {length_range, [{length, Len}]}}
-    end;
+    get_options(Dbg
+               ,State#?STATE{metadata = SMD#?SMD{length = Len}}
+               ,Opts);
 
 get_options(Dbg
            ,#?STATE{name = Name}=State
@@ -700,7 +695,7 @@ loop(Parent
                              ,length = Len
                              ,srtimeout = SRTimeout
                              ,transporter = TrMod
-                             ,options = Opts}}=State) ->
+                             ,options = Opts}}=State) when Len >= 0 ->
     case socket_receive(TrMod, Sock, Name, Dbg, Len, SRTimeout, Opts) of
         {ok, Dbg2, Packet} ->
             {Dbg3, State2} = run_callback(Dbg2
