@@ -99,6 +99,7 @@
 -define(DEFAULT_CHILDSPEC_COUNT, 1).
 -define(DEFAULT_TERMINATE_TIMEOUT, 10*1000).
 -define(DEFAULT_CONNECTOR_COUNT, 1).
+-define(DEFAULT_CONNECTOR_PER_ADDRESS, 1).
 
 
 
@@ -287,7 +288,7 @@ add(sockerl_types:name(), sockerl_types:socket()) ->
     sockerl_types:start_return().
 add(ConSup, Sock) ->
     director:start_child(ConSup
-                        ,#{id => Sock
+                        ,#{id => erlang:make_ref()
                          ,start => {sockerl_connector
                                    ,start_link
                                    ,[Sock]}
@@ -308,7 +309,7 @@ add(ConSup, Sock) ->
 
 %% @hidden
 init({Mod, InitArg, Opts}) ->
-    ConPlan = sockerl_utils:get_value(connection_childspec_plan
+    ConPlan = sockerl_utils:get_value(connector_childspec_plan
                                      ,Opts
                                      ,?DEFAULT_CHILDSPEC_PLAN
                                      ,fun director_check:filter_plan/1),
@@ -330,9 +331,9 @@ init({Mod, InitArg, Addrs0, Opts}) ->
                                    ,?DEFAULT_CONNECTOR_COUNT
                                    ,fun filter_addresses/1),
     ConCount =
-        sockerl_utils:get_value(connector_count_per_address
+        sockerl_utils:get_value(connector_per_address
                                ,Opts
-                               ,?DEFAULT_CONNECTOR_COUNT
+                               ,?DEFAULT_CONNECTOR_PER_ADDRESS
                                ,fun sockerl_utils:is_whole_integer/1),
     ConPlan = sockerl_utils:get_value(connector_childspec_plan
                                      ,Opts
