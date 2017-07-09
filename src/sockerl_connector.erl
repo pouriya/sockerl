@@ -175,7 +175,9 @@ start_link(Mod
 -spec
 start_link(module() | sockerl_types:register_name()
           ,term() | module()
-          ,sockerl_types:host() | term()
+          ,sockerl_types:host()          |
+           term()                        |
+           sockerl_types:start_options()
           ,sockerl_types:port_number() | sockerl_types:host()
           ,sockerl_types:options() | sockerl_types:port_number()) ->
     sockerl_types:start_return().
@@ -184,6 +186,15 @@ start_link(Mod
           ,Host
           ,Port
           ,Opts) when erlang:is_atom(Mod) andalso
+                      erlang:is_integer(Port) andalso
+                      erlang:is_list(Opts) ->
+    gen:start(?MODULE, link, Mod, {InitArg, Host, Port}, Opts);
+%% Will called by calling sockerl_connector_sup:add/3
+start_link(Mod
+          ,InitArg
+          ,Opts
+          ,Host
+          ,Port) when erlang:is_atom(Mod) andalso
                       erlang:is_integer(Port) andalso
                       erlang:is_list(Opts) ->
     gen:start(?MODULE, link, Mod, {InitArg, Host, Port}, Opts);

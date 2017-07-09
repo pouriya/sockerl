@@ -54,7 +54,7 @@
 -export([start_link/3
         ,start_link/4
         ,start_link/5
-        ,add/2
+        ,add/3
         ,fetch/1
         ,stop/1
         ,stop/2]).
@@ -65,6 +65,15 @@
 
 %% 'sockerl_server_connection_sup' callback:
 -export([start_link_/3]).
+
+
+
+
+
+
+
+%% 'sockerl_acceptor' callback:
+-export([add/2]).
 
 
 
@@ -203,20 +212,22 @@ fetch(ConSup) ->
 
 
 -spec
-add(sockerl_types:name(), sockerl_types:socket()) ->
+add(sockerl_types:name()
+   ,sockerl_types:host()
+   ,sockerl_types:port_number()) ->
     sockerl_types:start_return().
 %% @doc
-%%      adds new connection handler process to pool (for server).
+%%      Adds new connector for Host:Port in pool.
 %% @end
-add(ConSup, Sock) ->
+add(ConSup, Host, Port) ->
     director:start_child(ConSup
-                        ,#{id => Sock
-                          ,start => {sockerl_connector
-                                    ,start_link
-                                    ,[Sock]}
-                          ,append => true
-                          ,count => 0
-                          ,plan => []}).
+                        ,#{id => erlang:make_ref()
+                         ,start => {sockerl_connector
+                                   ,start_link
+                                   ,[Host, Port]}
+                         ,append => true
+                         ,count => 0
+                         ,plan => []}).
 
 
 
@@ -253,7 +264,7 @@ stop(Server, Reason) ->
 
 
 %% ---------------------------------------------------------------------
-%% 'sockerl_server_connection_sup' callback:
+%% 'sockerl_server_connection_sup' callbacks:
 
 
 
@@ -261,8 +272,28 @@ stop(Server, Reason) ->
 
 %% @hidden
 start_link_(Mod, InitArg, Opts) when erlang:is_atom(Mod) andalso
-    erlang:is_list(Opts) ->
+                                     erlang:is_list(Opts) ->
     director:start_link(?MODULE, {Mod, InitArg, Opts}).
+
+
+
+
+
+
+
+%% @hidden
+-spec
+add(sockerl_types:name(), sockerl_types:socket()) ->
+    sockerl_types:start_return().
+add(ConSup, Sock) ->
+    director:start_child(ConSup
+                        ,#{id => Sock
+                         ,start => {sockerl_connector
+                                   ,start_link
+                                   ,[Sock]}
+                         ,append => true
+                         ,count => 0
+                         ,plan => []}).
 
 
 
@@ -320,7 +351,15 @@ init({Mod, InitArg, Addrs0, Opts}) ->
                     ,plan => ConPlan
                     ,type => worker} || _ <- lists:seq(1, ConCount)]
                   || {Host, Port} <- Addrs],
-    {ok, lists:concat(ChildSpecs)}.
+    {ok
+    ,lists:concat(ChildSpecs)
+    ,#{id => erlang:make_ref()
+      ,start => {sockerl_connector
+                ,start_link
+                ,[Mod, InitArg, Opts]}
+      ,count => ConRunPlanCount
+      ,plan => ConPlan
+      ,type => worker}}.
 
 
 
