@@ -1,5 +1,14 @@
 -module(sockerl_SUITE).
--compile(export_all).
+-export([init_per_suite/1
+        ,end_per_suite/1
+        ,init_per_testcase/2
+        ,end_per_testcase/2
+        ,all/0
+        ,'1'/1
+        ,'2'/1
+        ,'3'/1
+        ,'4'/1]).
+
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("common_test/include/ct.hrl").
 -define(HOST, "127.0.0.1").
