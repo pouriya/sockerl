@@ -70,7 +70,7 @@
         ,stop_pool/1
         ,stop_pool/2
         ,get_pool_connections/1
-        ,get_pool_connection_random/1
+
         ,start_link_connector/4
         ,start_link_connector/5
         ,start_link_connector/6
@@ -620,18 +620,6 @@ get_pool_connections(sockerl_types:name()) ->
 %% @end
 get_pool_connections(Pool) ->
     sockerl_connector_sup:fetch(Pool).
-
-
-
-
-
-
-
--spec
-get_pool_connection_random(sockerl_types:name()) ->
-    {sockerl_types:socket(), pid()} | 'empty'.
-get_pool_connection_random(Pool) ->
-    sockerl_connector_sup:fetch_random(Pool).
 
 
 
