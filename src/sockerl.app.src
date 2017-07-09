@@ -1,7 +1,7 @@
 {application
 ,sockerl
-,[{description, "This is advanced Erlang socket library for TCP protocols and provides fast, useful and simple API for implementing server, connector and connector pool."}
- ,{vsn, "17.7.3"}
+,[{description, "This is advanced Erlang/Elixir socket library for TCP protocols and provides fast, useful and simple API for implementing server, connector and connector pool."}
+ ,{vsn, "17.7.10"}
  ,{applications, [kernel
                  ,stdlib
                  ,ssl
