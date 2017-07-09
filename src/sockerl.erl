@@ -70,6 +70,7 @@
         ,stop_pool/1
         ,stop_pool/2
         ,get_pool_connections/1
+        ,add_connector/3
 
         ,start_link_connector/4
         ,start_link_connector/5
@@ -609,6 +610,23 @@ get_pool_connections(sockerl_types:name()) ->
 %% @end
 get_pool_connections(Pool) ->
     sockerl_connector_sup:fetch(Pool).
+
+
+
+
+
+
+
+-spec
+add_connector(sockerl_types:name()
+             ,sockerl_types:host()
+             ,sockerl_types:port_number()) ->
+    sockerl_types:start_return().
+%% @doc
+%%      Adds new connector for Host:Port in pool.
+%% @end
+add_connector(Pool, Host, Port) ->
+    sockerl_connector_sup:add(Pool, Host, Port).
 
 
 
