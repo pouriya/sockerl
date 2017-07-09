@@ -147,10 +147,9 @@ handle_call(how_much, From, Count, _SMD) ->
 
 
 
-handle_disconnect(Count, SMD) ->
-    Sock = sockerl_metadata:get_socket(SMD),
-    io:format("Socket ~p closed connection after sending ~p packets~n"
-             ,[Sock, Count]),
+handle_disconnect(_Count, _SMD) ->
+	%% If client closes connection, 
+	%% Server connection process will crash with reason 'normal'
     {stop, normal}.
 
 
