@@ -70,7 +70,7 @@ dep_sockerl = hex 17.7.3
 
 
 ### Quick start
-![server architecture](priv/architectures/server.png)
+![server architecture](priv/architectures/sockerl_server_architect.png)
 
 ### Simple Non-blocking server 
 `echo_server.erl`:
