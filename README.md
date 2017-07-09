@@ -8,15 +8,17 @@ Sockerl is an advanced Erlang/Elixir socket library for TCP protocols and provid
 
 
 ### Features  
-* In server and client implementation every connection has its own process and Sockerl provides useful and simple API for accessing them and sending data through them or sending Erlang message to them, closing them etc.  
+* In server, client and client pool implementation every connection has its own process and Sockerl provides useful and simple API for accessing them and sending data through them or sending Erlang message to them, closing them etc.  
 
-* Every process calls `handle_call` function of your callback module for call requests, calls `handle_cast` function for cast requests, calls `handle_event` function for incoming events, calls `terminate` function for termination, calls `timeout` function for timeouts, calls `srtimeout` function for socket-receive-timeouts, etc. Also you don't need to handle [system messages](http://erlang.org/doc/design_principles/spec_proc.html#msg). 
+* Every connection process can handle generic calls (requests that have made using `gen_server:call/2-3` or `gen:call/3-4`), generic casts (requests that have made using `gen_server:cast/2`), generic events (messages in form of `{'$gen_event', Event}`), disconnecting (when other side closes connection), [Erlang system messages](http://erlang.org/doc/design_principles/spec_proc.html#msg), etc.
 
 * Acceptors and Connectors have been written as `Special Erlang process` and they are faster than `gen_server`, `gen_fsm`, etc.  
 
 * Blocking and non-blocking sockets are supported with doing a few changes in your code.  
 
 * SSL is supported too (you can define your own `sockerl_transporter` behavior for any protocol like SSL).  
+
+* Connects to multiple addresses and has multiple connections to every address in client pools.  
 
 * Clean and human-understandable error outputs.  
 
