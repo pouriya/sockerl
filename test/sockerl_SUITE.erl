@@ -211,6 +211,7 @@ all() ->
     ?assertMatch({ok, _Pid}, CRes),
     {ok, CConPid} = CRes,
 
+    timer:sleep(10),
     SCons = sockerl:get_server_connections(SPid),
     ?assertMatch([{_SConSock, _SConPid}], SCons),
     [{_, SConPid}] = SCons,
