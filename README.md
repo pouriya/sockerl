@@ -1,4 +1,4 @@
-![sockerl build](https://travis-ci.org/Pouriya-Jahanbakhsh/sockerl.png?branch=master)
+![sockerl travis test status](https://travis-ci.org/Pouriya-Jahanbakhsh/sockerl.png?branch=master)
 
 # SockErl
 ### Overview  
