@@ -37,7 +37,7 @@ All features not listed here.
 
 ##### Git
 ```sh
-~ $ git clone --branch 17.7.10 https://github.com/Pouriya-Jahanbakhsh/sockerl.git
+~ $ git clone --branch 17.8.9 https://github.com/Pouriya-Jahanbakhsh/sockerl.git
 ```
 
 # Download compiled
@@ -48,26 +48,26 @@ For compiled source and its dependencies download **lib.tar.gz** from [**Release
 ##### Rebar3
 Put this in `deps` in `rebar.config`:
 ```erlang
-{sockerl, "17.7.10"}
+{sockerl, "17.8.9"}
 ```
 
 
 ##### Rebar
 Put this in `deps` in `rebar.config`:  
 ```erlang
-{sockerl, ".*", {git, "https://github.com/Pouriya-Jahanbakhsh/sockerl.git", {tag, "17.7.10"}}}
+{sockerl, ".*", {git, "https://github.com/Pouriya-Jahanbakhsh/sockerl.git", {tag, "17.8.9"}}}
 ```
 
 ##### Mix
 Put this in deps in `mix.exs`:  
 ```erlang
-{:sockerl, "~> 17.7.10"}
+{:sockerl, "~> 17.8.9"}
 ```
 
 
 #### erlang.mk
 ```sh
-dep_sockerl = hex 17.7.10
+dep_sockerl = hex 17.8.9
 ```
 
 
