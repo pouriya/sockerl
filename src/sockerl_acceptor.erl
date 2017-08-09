@@ -453,6 +453,9 @@ accept(Dbg, #?STATE{connection_sup = Pid
         ,{socket_accept
          ,[{reason, {handshake, timeout}}|_ErrorParams]}} ->
             erlang:exit(ok);
+        {error, {socket_accept, [{reason, emfile}|_]}} ->
+            error_logger:warning_msg("Sockerl acceptor: too many open connections"),
+            erlang:exit(ok);
         {error, Reason} ->
             erlang:exit({error, Reason})
     end.
