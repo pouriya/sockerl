@@ -127,7 +127,8 @@ unwrap(sockerl_types:metadata()) ->
     ,module()
     ,sockerl_types:start_options()
     ,any()
-    ,atom()}.
+    ,atom()
+    ,sockerl_types:address()}.
 unwrap(#sockerl_metadata{socket = Sock
                         ,timeout = Timeout
                         ,length = Len

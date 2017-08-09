@@ -96,7 +96,8 @@
 -type host() :: inet:hostname().
 
 -type addresses() :: [] | [address()].
--type  address() :: {host(), port_number()}.
+-type  address() :: {host(), port_number()}
+                  | {'undefined', 'undefined'}.
 
 -type packet() :: any(). %% Depends on transporter module
 
