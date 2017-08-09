@@ -53,7 +53,7 @@
 
 
 %% API:
--export([wrap/8
+-export([wrap/9
         ,unwrap/1
 
         ,get_socket/1
@@ -63,7 +63,8 @@
         ,get_transporter/1
         ,get_options/1
         ,get_last_message/1
-        ,get_last_callback/1]).
+        ,get_last_callback/1
+        ,get_address/1]).
 
 
 
@@ -97,9 +98,10 @@ wrap(sockerl_types:socket()
     ,module()
     ,sockerl_types:start_options()
     ,any()
-    ,atom()) ->
+    ,atom()
+    ,sockerl_types:address()) ->
     sockerl_types:metadata().
-wrap(Sock, Timeout, SRTimeout, Len, TrMod, Opts, LMsg, LCB) ->
+wrap(Sock, Timeout, SRTimeout, Len, TrMod, Opts, LMsg, LCB, Addr) ->
     #sockerl_metadata{socket = Sock
                      ,timeout = Timeout
                      ,length = Len
@@ -107,7 +109,8 @@ wrap(Sock, Timeout, SRTimeout, Len, TrMod, Opts, LMsg, LCB) ->
                      ,transporter = TrMod
                      ,options = Opts
                      ,last_message = LMsg
-                     ,last_callback = LCB}.
+                     ,last_callback = LCB
+                     ,address = Addr}.
 
 
 
@@ -132,8 +135,9 @@ unwrap(#sockerl_metadata{socket = Sock
                         ,transporter = TrMod
                         ,options = Opts
                         ,last_message = LMsg
-                        ,last_callback = LCB}) ->
-    {Sock, Timeout, Len, SRTimeout, TrMod, Opts, LMsg, LCB}.
+                        ,last_callback = LCB
+                        ,address = Addr}) ->
+    {Sock, Timeout, Len, SRTimeout, TrMod, Opts, LMsg, LCB, Addr}.
 
 
 
@@ -230,3 +234,15 @@ get_last_callback(sockerl_types:metadata()) ->
     atom().
 get_last_callback(#sockerl_metadata{last_callback = LCB}) ->
     LCB.
+
+
+
+
+
+
+
+-spec
+get_address(sockerl_types:metadata()) ->
+    sockerl_types:address().
+get_address(#sockerl_metadata{address = Addr}) ->
+    Addr.

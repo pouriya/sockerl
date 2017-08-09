@@ -5,4 +5,5 @@
                           ,transporter
                           ,options
                           ,last_message
-                          ,last_callback}).
+                          ,last_callback
+                          ,address}).
