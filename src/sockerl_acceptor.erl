@@ -489,8 +489,8 @@ terminate(Dbg
          ,Reason) ->
     _ = sockerl_socket:close(TrMod, ListenSock, Opts),
     error_logger:format("** Sockerl acceptor \"~p\" terminating \n** Re"
-    "ason for termination == \"~p\"~n** State == \""
-    "~p\"~n"
+                        "ason for termination == \"~p\"~n** State == \""
+                        "~p\"~n"
                        ,[Name, Reason, State]),
     sys:print_log(Dbg),
     erlang:exit(Reason).
