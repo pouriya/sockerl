@@ -58,6 +58,7 @@
         ,start_link_server/5
         ,stop_server/1
         ,stop_server/2
+        ,get_acceptors/1
         ,sleep_acceptors/1
         ,wakeup_acceptors/1
         ,get_acceptor_modes/1
@@ -445,6 +446,21 @@ get_server_connections(sockerl_types:name()) ->
 %% @end
 get_server_connections(Server) ->
     sockerl_server_sup:fetch_connections(Server).
+
+
+
+
+
+
+
+-spec
+get_acceptors(sockerl_types:name()) ->
+    [] | [{pos_integer(), pid()}].
+%% @doc
+%%      Returns all server acceptors.
+%% @end
+get_acceptors(Server) ->
+    sockerl_server_sup:fetch_acceptors(Server).
 
 
 
