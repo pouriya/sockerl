@@ -338,7 +338,7 @@ init_it(Starter
        ,Name
        ,Mod
        ,{InitArg, Host, Port}
-       ,Opts) when erlang:is_integer(Port) ->
+       ,Opts) ->
     TrMod = sockerl_utils:get_value(transporter
                                    ,Opts
                                    ,?DEFAULT_TRANSPORT_MODULE
@@ -352,8 +352,9 @@ init_it(Starter
                    ,Parent
                    ,Name
                    ,Mod
-                   ,{InitArg, Sock, {Host, Port}}
-                   ,Opts);
+                   ,{InitArg, Sock}
+                   ,Opts
+                   ,{Host, Port});
         {error, Reason}=Error ->
             proc_lib:init_ack(Starter, Error),
             erlang:exit(Reason)
@@ -363,9 +364,11 @@ init_it(Starter, Parent, Name, Mod, {InitArg, Sock}, Opts) ->
            ,Parent
            ,Name
            ,Mod
-           ,{InitArg, Sock, {undefined, undefined}}
-           ,Opts);
-init_it(Starter, Parent, Name, Mod, {InitArg, Sock, Addr}, Opts) ->
+           ,{InitArg, Sock}
+           ,Opts
+           ,{undefined, undefined}).
+
+init_it(Starter, Parent, Name, Mod, {InitArg, Sock}, Opts, Addr) ->
     TrMod = sockerl_utils:get_value(transporter
                                    ,Opts
                                    ,?DEFAULT_TRANSPORT_MODULE
