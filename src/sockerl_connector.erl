@@ -547,9 +547,10 @@ run_callback2(Dbg, #?STATE{metadata = SMD}=State, Mod, Func, Args) ->
                         Error
                 end;
             {'EXIT', Reason} ->
-                {error, {call_crash, [{reason, Reason}]}};
+                {error, {callback_crash, [{reason, Reason}]}};
             Other ->
-                {error, {bad_return_value, [{returned_value, Other}]}}
+                {error, {callback_bad_return_value
+                        ,[{returned_value, Other}]}}
         end,
     case Ret2 of
         {error, {Reason2, ErrorParams}} ->
