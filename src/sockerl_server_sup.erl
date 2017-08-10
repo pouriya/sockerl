@@ -60,6 +60,7 @@
         ,sleep_acceptors/1
         ,wakeup_acceptors/1
         ,get_acceptor_modes/1
+        ,change_acceptor_modes/1
 
         ,stop/1
         ,stop/2]).
@@ -242,6 +243,19 @@ get_acceptor_modes(sockerl_types:name()) ->
 get_acceptor_modes(Server) ->
     {ok, Pid} = director:get_pid(Server, ?ACCEPTOR_SUP),
     sockerl_acceptor_sup:get_mode(Pid).
+
+
+
+
+
+
+
+-spec
+change_acceptor_modes(sockerl_types:name()) ->
+    sockerl_types:acceptor_mode() | 'not_allowed'.
+change_acceptor_modes(Server) ->
+    {ok, Pid} = director:get_pid(Server, ?ACCEPTOR_SUP),
+    sockerl_acceptor_sup:change_mode(Pid).
 
 
 

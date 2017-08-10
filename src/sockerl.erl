@@ -518,7 +518,7 @@ get_acceptor_modes(Server) ->
 change_acceptor_modes(sockerl_types:name()) ->
     sockerl_types:acceptor_mode() | 'not_allowed'.
 change_acceptor_modes(Server) ->
-    sockerl_acceptor_sup:change_mode(Server).
+    sockerl_server_sup:change_acceptor_modes(Server).
 
 
 
