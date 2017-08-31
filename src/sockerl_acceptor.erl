@@ -31,19 +31,15 @@
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
 %% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
-%% @version 17.7.10
-%% @hidden
-%% @doc
-%%          socket acceptor documentation.
-%% @end
-%% ---------------------------------------------------------------------
+%% @version 17.7.9
+%% -------------------------------------------------------------------------------------------------
 
 
 -module(sockerl_acceptor).
 -author("pouriya.jahanbakhsh@gmail.com").
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -86,41 +82,41 @@
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Records & Macros & Includes:
 
 
 
 
 
--record(sockerl_acceptor_state_record, {connection_sup
-                                       ,listen_socket
-                                       ,name
-                                       ,mode
-                                       ,transporter
-                                       ,options
-                                       ,active
-                                       ,acceptor}).
 -define(STATE, sockerl_acceptor_state_record).
+-record(?STATE, {connection_sup
+                ,listen_socket
+                ,name
+                ,mode
+                ,transporter
+                ,options
+                ,active
+                ,acceptor}).
 
--define(DEFAULT_TRANSPORT_MODULE, 'sockerl_tcp_transporter').
+-define(DEF_TRANSPORT_MODULE, 'sockerl_tcp_transporter').
 -define(SLEEP, 'sleep').
 -define(ACCEPT, 'accept').
 -define(GET_MODE, 'get_mode').
 -define(CHANGE_MODE, 'change_mode').
 -define(GEN_CALL_TAG, '$gen_call').
 
--define(DEFAULT_DEBUG, []).
--define(DEFAULT_ACCEPT_TIMEOUT, 500).
--define(DEFAULT_HANDSHAKE_TIMEOUT, 500).
--define(DEFAULT_MODE, ?ACCEPT).
--define(DEFAULT_FORWARD_RECEIVE_TIMEOUT, 500).
+-define(DEF_DEBUG, []).
+-define(DEF_ACCEPT_TIMEOUT, 500).
+-define(DEF_HANDSHAKE_TIMEOUT, 500).
+-define(DEF_MODE, ?ACCEPT).
+-define(DEF_FORWARD_RECV_TIMEOUT, 500).
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% API functions:
 
 
@@ -128,17 +124,10 @@
 
 
 -spec
-start_link(sockerl_types:start_options()
-          ,sockerl_types:socket()
-          ,Pool::sockerl_types:name()) ->
+start_link(sockerl_types:start_options(), sockerl_types:socket(), Pool::sockerl_types:name()) ->
     sockerl_types:start_return().
 start_link(Opts, ListenSock, ConSup) ->
-    proc_lib:start_link(?MODULE
-                       ,init
-                       ,[Opts
-                        ,ListenSock
-                        ,ConSup
-                        ,erlang:self()]).
+    proc_lib:start_link(?MODULE, init, [Opts, ListenSock, ConSup, erlang:self()]).
 
 
 
@@ -192,7 +181,7 @@ change_mode(Acc) ->
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% 'proc_lib' callback:
 
 
@@ -205,21 +194,10 @@ init(Opts
     ,ConSup
     ,Parent) ->
     erlang:process_flag(trap_exit, true),
-    DbgOpts = sockerl_utils:get_value(acceptor_debug
-                                     ,Opts
-                                     ,?DEFAULT_DEBUG
-                                     ,fun erlang:is_list/1),
-    Dbg = sockerl_utils:debug_options(sockerl_acceptor
-                                     ,erlang:self()
-                                     ,DbgOpts),
-    TrMod = sockerl_utils:get_value(transporter
-                                       ,Opts
-                                       ,?DEFAULT_TRANSPORT_MODULE
-                                       ,fun erlang:is_atom/1),
-    Mode = sockerl_utils:get_value(acceptor_mode
-                                  ,Opts
-                                  ,?DEFAULT_MODE
-                                  ,fun filter_mode/1),
+    DbgOpts = sockerl_utils:get_value(acceptor_debug, Opts, ?DEF_DEBUG, fun erlang:is_list/1),
+    Dbg = sockerl_utils:debug_options(sockerl_acceptor, erlang:self(), DbgOpts),
+    TrMod = sockerl_utils:get_value(transporter, Opts, ?DEF_TRANSPORT_MODULE, fun erlang:is_atom/1),
+    Mode = sockerl_utils:get_value(acceptor_mode, Opts, ?DEF_MODE, fun filter_mode/1),
     Name = erlang:self(),
     {ok, Activity} = sockerl_socket:is_active(TrMod, ListenSock, Opts),
     State = #?STATE{connection_sup = ConSup
@@ -230,15 +208,13 @@ init(Opts
                    ,options = Opts
                    ,active = Activity},
     proc_lib:init_ack(Parent, {ok, erlang:self()}),
-    loop(Parent
-        ,debug(Name, Dbg, {start, TrMod, ListenSock, ConSup, Mode})
-        ,State).
+    loop(Parent, debug(Name, Dbg, {start, TrMod, ListenSock, ConSup, Mode}), State).
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% 'sys' callbacks:
 
 
@@ -294,7 +270,7 @@ system_terminate(Reason, _Parent, Dbg, State) ->
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Internal functions:
 
 
@@ -328,10 +304,7 @@ loop(Parent, Dbg, State) ->
 
 
 
-process_message(_Parent
-               ,Dbg
-               ,#?STATE{acceptor = Pid}=State
-               ,{'EXIT', Pid, Msg}) ->
+process_message(_Parent, Dbg, #?STATE{acceptor = Pid}=State, {'EXIT', Pid, Msg}) ->
     case Msg of
         ok ->
             {Dbg, State#?STATE{acceptor = undefined}};
@@ -342,22 +315,17 @@ process_message(_Parent
         Other ->
             terminate(Dbg, State, {unknown_acceptor_msg, Other})
     end;
-process_message(_Parent
-               ,Dbg
-               ,#?STATE{name=Name}=State
-               ,{?GEN_CALL_TAG, From, Msg}) ->
-    process_request(debug(Name, Dbg, {?GEN_CALL_TAG, From, Msg})
-                   ,State
-                   ,From
-                   ,Msg);
+
+process_message(_Parent, Dbg, #?STATE{name=Name}=State, {?GEN_CALL_TAG, From, Msg}) ->
+    process_request(debug(Name, Dbg, {?GEN_CALL_TAG, From, Msg}), State, From, Msg);
+
 process_message(Parent, Dbg, State, {system, From, Msg}) ->
     sys:handle_system_msg(Msg, From, Parent, ?MODULE, Dbg, State);
+
 process_message(Parent, Dbg, State, {'EXIT', Parent, Reason}) ->
     terminate(Dbg, State, Reason);
-process_message(_Parent
-               ,Dbg
-               ,#?STATE{name= Name}=State
-               ,Msg) ->
+
+process_message(_Parent, Dbg, #?STATE{name= Name}=State, Msg) ->
     {debug(Name, Dbg, {in, Msg}), State}.
 
 
@@ -369,18 +337,15 @@ process_message(_Parent
 process_request(Dbg, #?STATE{name = Name}=State, From, ?SLEEP) ->
     {reply(Name, debug(Name, Dbg, {?CHANGE_MODE, ?SLEEP}), From, ok)
     ,State#?STATE{mode = ?SLEEP}};
+
 process_request(Dbg, #?STATE{name = Name}=State, From, ?ACCEPT) ->
     {reply(Name, debug(Name, Dbg, {?CHANGE_MODE, ?ACCEPT}), From, ok)
     ,State#?STATE{mode = ?ACCEPT}};
-process_request(Dbg
-               ,#?STATE{name = Name, mode = Mode}=State
-               ,From
-               ,?GET_MODE) ->
+
+process_request(Dbg, #?STATE{name = Name, mode = Mode}=State, From, ?GET_MODE) ->
     {reply(Name, debug(Name, Dbg, ?GET_MODE), From, Mode), State};
-process_request(Dbg
-               ,#?STATE{name = Name, mode = Mode}=State
-               ,From
-               ,?CHANGE_MODE) ->
+
+process_request(Dbg, #?STATE{name = Name, mode = Mode}=State, From, ?CHANGE_MODE) ->
     Mode2 =
         case Mode of
             ?SLEEP ->
@@ -414,35 +379,18 @@ accept(Dbg, #?STATE{connection_sup = Pid
             Dbg2 = debug(Name, Dbg, {accept, Sock}),
             case sockerl_connector_sup:add(Pid, Sock) of
                 {ok, Pid2} ->
-                    _ = sockerl_socket:controlling_process(TrMod
-                                                      ,Sock
-                                                      ,Pid2
-                                                      ,Opts),
+                    _ = sockerl_socket:controlling_process(TrMod, Sock, Pid2, Opts),
                     if
                         Active ->
                             forward(Pid2);
                         true ->
                             ok
                     end,
-                    erlang:exit({ok
-                                ,debug(Name
-                                      ,Dbg2
-                                      ,{start_connection
-                                       ,Sock
-                                       ,Pid2})});
+                    erlang:exit({ok, debug(Name, Dbg2, {start_connection, Sock,Pid2})});
                 {error, Reason} ->
-                    erlang:exit({ok
-                                ,debug(Name
-                                      ,Dbg2
-                                      ,{start_connection_error
-                                       ,Sock
-                                       ,Reason})});
+                    erlang:exit({ok, debug(Name, Dbg2, {start_connection_error, Sock, Reason})});
                 ignore ->
-                    erlang:exit({ok
-                                ,debug(Name
-                                      ,Dbg2
-                                      ,{start_connection_ignore
-                                       ,Sock})})
+                    erlang:exit({ok, debug(Name, Dbg2, {start_connection_ignore, Sock})})
             end;
         {error, {socket_accept, [{reason, timeout}|_ErrorParams]}} ->
             erlang:exit({ok, Dbg});
@@ -468,7 +416,7 @@ forward(Pid) ->
         Msg ->
             Pid ! Msg,
             forward(Pid)
-    after ?DEFAULT_FORWARD_RECEIVE_TIMEOUT ->
+    after ?DEF_FORWARD_RECV_TIMEOUT ->
         ok
     end.
 
@@ -485,9 +433,9 @@ terminate(Dbg
                  ,listen_socket = ListenSock}=State
          ,Reason) ->
     _ = sockerl_socket:close(TrMod, ListenSock, Opts),
-    error_logger:format("** Sockerl acceptor \"~p\" terminating \n** Re"
-                        "ason for termination == \"~p\"~n** State == \""
-                        "~p\"~n"
+    error_logger:format("** Sockerl acceptor ~p terminating \n"
+                        "** Reason for termination == ~p\n"
+                        "** State == ~p\n"
                        ,[Name, Reason, State]),
     sys:print_log(Dbg),
     erlang:exit(Reason).
@@ -520,77 +468,50 @@ debug(Name, Dbg, Event) ->
 
 
 handle_debug(IODev, {accept, Sock}, Name) ->
-    io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" accepted socket \"~p\"~n"
-             ,[Name, Sock]);
+    io:format(IODev, "*DBG* Sockerl acceptor ~p accepted socket ~p\n", [Name, Sock]);
 
 handle_debug(IODev, {start_connection, Sock, Pid}, Name) ->
     io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" gave socket \"~p\" to conn"
-              "ection handler \"~p\"~n"
+             ,"*DBG* Sockerl acceptor ~p gave socket ~p to connection handler ~p\n"
              ,[Name, Sock, Pid]);
 
 handle_debug(IODev, {start_connection_error, Sock, Reason}, Name) ->
     io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" could not start connection"
-              " handler for socket \"~p\" with reason \"~p\"~n"
+             ,"*DBG* Sockerl acceptor ~p could not start connectionhandler for socket ~p with reaso"
+              "n ~p\n"
              ,[Name, Sock, Reason]);
 
 handle_debug(IODev, {start_connection_ignore, Sock}, Name) ->
     io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" starting new connection ha"
-              "ndler for socket \"~p\" was ignored~n"
+             ,"*DBG* Sockerl acceptor ~p starting new connection handler for socket ~p was ignored~"
+              "n"
              ,[Name, Sock]);
 
 handle_debug(IODev, {out, Msg, Pid}, Name) ->
-    io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" sent message \"~p\" to \"~"
-              "p\" ~n"
-             ,[Name, Msg, Pid]);
+    io:format(IODev, "*DBG* Sockerl acceptor ~p sent message ~p to ~p \n", [Name, Msg, Pid]);
 
 handle_debug(IODev, {?GEN_CALL_TAG, {Pid, _Tag}, Msg}, Name) ->
-    io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" got request \"~p\" from \""
-              "~p\"~n"
-             ,[Name, Msg, Pid]);
+    io:format(IODev, "*DBG* Sockerl acceptor ~p got request ~p from ~p\n", [Name, Msg, Pid]);
 
 handle_debug(IODev, {?CHANGE_MODE, Mode}, Name) ->
-    io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" changed mod to \"~p\"~n"
-             ,[Name, Mode]);
+    io:format(IODev, "*DBG* Sockerl acceptor ~p changed mod to ~p\n", [Name, Mode]);
 
 handle_debug(IODev, ?GET_MODE, Name) ->
-    io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" got request for getting it"
-              "s mode~n"
-             ,[Name]);
+    io:format(IODev, "*DBG* Sockerl acceptor ~p got request for getting its mode\n", [Name]);
 
 handle_debug(IODev, {in, Msg}, Name) ->
-    io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" got message \"~p\"~n"
-             ,[Name, Msg]);
+    io:format(IODev, "*DBG* Sockerl acceptor ~p got message ~p\n", [Name, Msg]);
 
-handle_debug(IODev
-            ,{start
-             ,TrMod
-             ,ListenSock
-             ,ConSup
-             ,Mode}
-            ,Name) ->
+handle_debug(IODev, {start, TrMod, ListenSock, ConSup, Mode}, Name) ->
     io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" started for listen socket "
-              "\"~p\" with options:~n \ttransporter module: '~p'~n \tpo"
-              "ol pid: ~p~n \tmode: '~p'~n"
-             ,[Name
-              ,ListenSock
-              ,TrMod
-              ,ConSup
-              ,Mode]);
+             ,"*DBG* Sockerl acceptor ~p started for listen socket ~p with options:\n "
+              "\ttransporter module: '~p'\n "
+              "\tpool pid: ~p\n "
+              "\tmode: '~p'\n"
+             ,[Name, ListenSock, TrMod, ConSup, Mode]);
 
 handle_debug(IODev, Event, Name) ->
-    io:format(IODev
-             ,"*DBG* Sockerl acceptor \"~p\" got event \"~p\"~n"
-             ,[Name, Event]).
+    io:format(IODev, "*DBG* Sockerl acceptor ~p got event ~p\n", [Name, Event]).
 
 
 

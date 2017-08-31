@@ -31,16 +31,16 @@
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
 %% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
-%% @version 17.7.10
+%% @version 17.9
 %% @hidden
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 
 
 -module(sockerl_server_sup).
 -author("pouriya.jahanbakhsh@gmail.com").
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -73,7 +73,7 @@
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Record & Macros & Includes:
 
 
@@ -83,17 +83,17 @@
 -define(ACCEPTOR_SUP, acceptor_sup).
 -define(CONNECTION_SUP, connection_sup).
 -define(DEF_START_OPTS, [{log_validate_fun, fun log_validate/2}]).
--define(DEFAULT_ACCEPTOR_COUNT, 1).
--define(DEFAULT_SOCKET_OPTIONS, []).
--define(DEFAULT_SSL_FLAG, false).
--define(DEFAULT_TERMINATE_TIMEOUT, 10*1000). %% 10s
--define(DEFAULT_TRANSPORT_MODULE, 'sockerl_tcp_transporter').
+-define(DEF_ACCEPTOR_COUNT, 1).
+-define(DEF_SOCKET_OPTIONS, []).
+-define(DEF_SSL_FLAG, false).
+-define(DEF_TERMINATE_TIMEOUT, 10*1000). %% 10s
+-define(DEF_TRANSPORT_MODULE, 'sockerl_tcp_transporter').
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% API functions:
 
 
@@ -134,12 +134,7 @@ start_link(Mod, InitArg, Port, Opts) when erlang:is_atom(Mod),
 start_link(Name, Mod, InitArg, Port) when erlang:is_tuple(Name),
                                           erlang:is_atom(Mod),
                                           erlang:is_integer(Port) ->
-    case director:start_link(Name
-                            ,?MODULE
-                            ,{Mod
-                             ,InitArg
-                             ,Port
-                             ,?DEF_START_OPTS}) of
+    case director:start_link(Name, ?MODULE, {Mod, InitArg, Port, ?DEF_START_OPTS}) of
         {ok, Pid} ->
             continue_starting(?DEF_START_OPTS, Pid);
         {error, _Reason}=Error ->
@@ -165,9 +160,7 @@ start_link(Name, Mod, InitArg, Port, Opts) when erlang:is_tuple(Name),
                                                 erlang:is_atom(Mod),
                                                 erlang:is_integer(Port),
                                                 erlang:is_list(Opts) ->
-    case director:start_link(Name
-                            ,?MODULE
-                            ,{Mod, InitArg, Port, Opts}, ?DEF_START_OPTS) of
+    case director:start_link(Name, ?MODULE, {Mod, InitArg, Port, Opts}, ?DEF_START_OPTS) of
         {ok, Pid} ->
             continue_starting(Opts, Pid);
         {error, _Reason}=Error ->
@@ -264,7 +257,7 @@ change_acceptor_modes(Server) ->
 stop(sockerl_types:name()) ->
     'ok'.
 stop(Server) ->
-    director:stop(Server, normal, ?DEFAULT_TERMINATE_TIMEOUT).
+    director:stop(Server, normal, ?DEF_TERMINATE_TIMEOUT).
 
 
 
@@ -276,13 +269,13 @@ stop(Server) ->
 stop(sockerl_types:name(), Reason::any()) ->
     ok.
 stop(Server, Reason) ->
-    director:stop(Server, Reason, ?DEFAULT_TERMINATE_TIMEOUT).
+    director:stop(Server, Reason, ?DEF_TERMINATE_TIMEOUT).
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% 'director' callback:
 
 
@@ -293,43 +286,37 @@ stop(Server, Reason) ->
 init({Mod, InitArg, Port, Opts}=Arg) ->
     TrMod = sockerl_utils:get_value(transporter
                                    ,Opts
-                                   ,?DEFAULT_TRANSPORT_MODULE
+                                   ,?DEF_TRANSPORT_MODULE
                                    ,fun erlang:is_atom/1),
     case sockerl_socket:listen(TrMod, Port, Opts) of
         {ok, LSock} ->
             case catch Mod:listen_init(InitArg, LSock) of
                 ok ->
-                    {ok
-                        ,[#{id => ?CONNECTION_SUP
-                          ,start => {sockerl_server_connection_sup
-                                    ,start_link
-                                    ,[Mod, InitArg, Opts]}
-                          ,type => supervisor
-                          ,plan => [stop]
-                          ,count => 1}
-                        ,#{id => ?ACCEPTOR_SUP
-                         ,start => {sockerl_acceptor_sup
-                                   ,start_link
-                                   ,[Opts, LSock]}
-                         ,type => supervisor
-                         ,plan => [stop]
-                         ,count => 1}]};
+                    {ok, [#{id => ?CONNECTION_SUP
+                           ,start => {sockerl_server_connection_sup
+                                     ,start_link
+                                     ,[Mod, InitArg, Opts]}
+                           ,type => supervisor
+                           ,plan => [stop]
+                           ,count => 1}
+                         ,#{id => ?ACCEPTOR_SUP
+                           ,start => {sockerl_acceptor_sup, start_link, [Opts, LSock]}
+                           ,type => supervisor
+                           ,plan => [stop]
+                           ,count => 1}]};
                 {ok, InitArg2} ->
-                    {ok
-                    ,[#{id => ?CONNECTION_SUP
-                       ,start => {sockerl_server_connection_sup
-                                 ,start_link
-                                 ,[Mod, InitArg2, Opts]}
-                       ,type => supervisor
-                       ,plan => [stop]
-                       ,count => 1}
-                     ,#{id => ?ACCEPTOR_SUP
-                       ,start => {sockerl_acceptor_sup
-                                 ,start_link
-                                 ,[Opts, LSock]}
-                       ,type => supervisor
-                       ,plan => [stop]
-                       ,count => 1}]};
+                    {ok, [#{id => ?CONNECTION_SUP
+                           ,start => {sockerl_server_connection_sup
+                                     ,start_link
+                                     ,[Mod, InitArg2, Opts]}
+                           ,type => supervisor
+                           ,plan => [stop]
+                           ,count => 1}
+                         ,#{id => ?ACCEPTOR_SUP
+                           ,start => {sockerl_acceptor_sup, start_link, [Opts, LSock]}
+                           ,type => supervisor
+                           ,plan => [stop]
+                           ,count => 1}]};
                 ignore ->
                     ignore;
                 {stop, _Reason}=Stop ->
@@ -337,11 +324,10 @@ init({Mod, InitArg, Port, Opts}=Arg) ->
                 {'EXIT', Reason} ->
                     {stop, Reason};
                 Other ->
-                    {stop
-                    ,{bad_return_value, [{returned_value, Other}
-                                        ,{module, Mod}
-                                        ,{function, listen_init}
-                                        ,{argument, Arg}]}}
+                    {stop, {bad_return_value, [{returned_value, Other}
+                                              ,{module, Mod}
+                                              ,{function, listen_init}
+                                              ,{argument, Arg}]}}
             end;
         {error, Reason} ->
             {stop, Reason}
@@ -351,7 +337,7 @@ init({Mod, InitArg, Port, Opts}=Arg) ->
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Internal functions:
 
 
@@ -359,11 +345,10 @@ init({Mod, InitArg, Port, Opts}=Arg) ->
 
 
 continue_starting(Opts, Pid) ->
-    AccCount =
-        sockerl_utils:get_value(acceptor_count
-                               ,Opts
-                               ,?DEFAULT_ACCEPTOR_COUNT
-                               ,fun sockerl_utils:is_whole_integer/1),
+    AccCount = sockerl_utils:get_value(acceptor_count
+                                      ,Opts
+                                      ,?DEF_ACCEPTOR_COUNT
+                                      ,fun sockerl_utils:is_whole_integer/1),
     {ok, ConRootSupPid} = director:get_pid(Pid, ?CONNECTION_SUP),
     ConSups = start_connection_sups(AccCount, ConRootSupPid),
     {ok, AccSupPid} = director:get_pid(Pid, ?ACCEPTOR_SUP),
@@ -382,11 +367,8 @@ start_connection_sups(AccCount, ConRootSupPid) ->
 start_connection_sups(0, _ConRootSupPid, ConSups) ->
     ConSups;
 start_connection_sups(Count, ConRootSupPid, ConSups) ->
-    {ok, ConSupPid} = sockerl_server_connection_sup:add(ConRootSupPid
-                                                       ,Count),
-    start_connection_sups(Count-1
-                         ,ConRootSupPid
-                         ,[{Count, ConSupPid}|ConSups]).
+    {ok, ConSupPid} = sockerl_server_connection_sup:add(ConRootSupPid, Count),
+    start_connection_sups(Count-1, ConRootSupPid, [{Count, ConSupPid} | ConSups]).
 
 
 
@@ -394,11 +376,8 @@ start_connection_sups(Count, ConRootSupPid, ConSups) ->
 
 
 
-start_acceptors(ConSups, AccSupPid) ->
-    _ =
-        [sockerl_acceptor_sup:add(ConSup, AccSupPid, Id)
-        || {Id, ConSup} <- ConSups],
-    ok.
+start_acceptors(ConSups, AccSup) ->
+    lists:foreach(fun({Id, ConSup}) -> sockerl_acceptor_sup:add(ConSup, AccSup, Id) end,ConSups).
 
 
 

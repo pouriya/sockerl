@@ -31,19 +31,16 @@
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
 %% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
-%% @version 17.7.10
+%% @version 17.9
 %% @hidden
-%% @doc
-%%          Socket API functions.
-%% @end
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 
 
 -module(sockerl_socket).
 -author("pouriya.jahanbakhsh@gmail.com").
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -68,7 +65,7 @@
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% API:
 
 
@@ -76,9 +73,7 @@
 
 
 -spec
-listen(module()
-      ,sockerl_types:port_number()
-      ,sockerl_types:start_options()) ->
+listen(module(), sockerl_types:port_number(), sockerl_types:start_options()) ->
     {'ok', sockerl_types:socket()} | sockerl_types:error().
 %% @doc
 %%      returns listen socket which can accepts incoming connections on
@@ -113,9 +108,7 @@ listen(TrMod, Port, Opts) ->
 
 
 -spec
-accept(module()
-      ,sockerl_types:socket()
-      ,sockerl_types:start_options()) ->
+accept(module(), sockerl_types:socket(), sockerl_types:start_options()) ->
     {ok, sockerl_types:socket()} | sockerl_types:error().
 %% @doc
 %%      accepts incoming connection and returns new connection socket.
@@ -125,12 +118,11 @@ accept(TrMod, LSock, Opts) ->
         {ok, _Sock}=Ok ->
             Ok;
         {error, Reason} ->
-            {error
-            ,{socket_accept, [{reason, Reason}
-                             ,{info, format_error(TrMod, Reason)}
-                             ,{transporter, TrMod}
-                             ,{listen_socket, LSock}
-                             ,{options, Opts}]}};
+            {error, {socket_accept, [{reason, Reason}
+                                    ,{info, format_error(TrMod, Reason)}
+                                    ,{transporter, TrMod}
+                                    ,{listen_socket, LSock}
+                                    ,{options, Opts}]}};
         {'EXIT', Reason} ->
             {error, {socket_accept_crash, [{reason, Reason}
                                           ,{transporter, TrMod}
@@ -150,9 +142,7 @@ accept(TrMod, LSock, Opts) ->
 
 
 -spec
-is_active(module()
-         ,sockerl_types:socket()
-         ,sockerl_types:start_options()) ->
+is_active(module(), sockerl_types:socket(), sockerl_types:start_options()) ->
     {ok, boolean()} | sockerl_types:error().
 %% @doc
 %%      returns activity flag of socket.
@@ -162,21 +152,18 @@ is_active(TrMod, Sock, Opts) ->
         {ok, _Bool}=Ok ->
             Ok;
         {error, Reason} ->
-            {error
-            ,{socket_get_activity, [{reason, Reason}
-                                   ,{info, format_error(TrMod, Reason)}
-                                   ,{transporter, TrMod}
-                                   ,{socket, Sock}]}};
-        {'EXIT', Reason} ->
-            {error
-            ,{socket_get_activity_crash, [{reason, Reason}
-                                         ,{transporter, TrMod}
-                                         ,{socket, Sock}]}};
-        Other ->
-            {error
-            ,{socket_get_activity_return, [{returned_value, Other}
+            {error, {socket_get_activity, [{reason, Reason}
+                                          ,{info, format_error(TrMod, Reason)}
                                           ,{transporter, TrMod}
-                                          ,{socket, Sock}]}}
+                                          ,{socket, Sock}]}};
+        {'EXIT', Reason} ->
+            {error, {socket_get_activity_crash, [{reason, Reason}
+                                                ,{transporter, TrMod}
+                                                ,{socket, Sock}]}};
+        Other ->
+            {error, {socket_get_activity_return, [{returned_value, Other}
+                                                 ,{transporter, TrMod}
+                                                 ,{socket, Sock}]}}
     end.
 
 
@@ -233,11 +220,10 @@ is_socket_message(module(), term(), sockerl_types:start_options()) ->
 is_socket_message(TrMod, Msg, Opts) ->
     case catch TrMod:is_socket_message(Msg, Opts) of
         {true, {error, Reason}} ->
-            {error
-            ,{socket_check_message, [{reason, Reason}
-                                    ,{info, format_error(TrMod, Reason)}
-                                    ,{transporter, TrMod}
-                                    ,{message, Msg}]}};
+            {error, {socket_check_message, [{reason, Reason}
+                                           ,{info, format_error(TrMod, Reason)}
+                                           ,{transporter, TrMod}
+                                           ,{message, Msg}]}};
         {true, Packet} when erlang:is_binary(Packet) orelse
                             erlang:is_list(Packet) ->
             {ok, Packet};
@@ -254,10 +240,9 @@ is_socket_message(TrMod, Msg, Opts) ->
                                                  ,{transporter, TrMod}
                                                  ,{message, Msg}]}};
         Other ->
-            {error
-            ,{socket_check_message_return, [{returned_value, Other}
-                                           ,{transporter, TrMod}
-                                           ,{message, Msg}]}}
+            {error, {socket_check_message_return, [{returned_value, Other}
+                                                  ,{transporter, TrMod}
+                                                  ,{message, Msg}]}}
     end.
 
 
@@ -304,10 +289,7 @@ send(TrMod, Sock, Packet, Opts) ->
 
 
 -spec
-setopts(module()
-       ,sockerl_types:socket()
-       ,list()
-       ,sockerl_types:start_options()) ->
+setopts(module(), sockerl_types:socket(), list(), sockerl_types:start_options()) ->
     'ok' | sockerl_types:error().
 %% @doc
 %%      Changes options of socket.
@@ -317,12 +299,11 @@ setopts(TrMod, Sock, SockOpts, Opts) ->
         ok ->
             ok;
         {error, Reason} ->
-            {error
-            ,{socket_setopts, [{reason, Reason}
-                              ,{info, format_error(TrMod, Reason)}
-                              ,{socket, Sock}
-                              ,{socket_options, SockOpts}
-                              ,{options, Opts}]}};
+            {error, {socket_setopts, [{reason, Reason}
+                                     ,{info, format_error(TrMod, Reason)}
+                                     ,{socket, Sock}
+                                     ,{socket_options, SockOpts}
+                                     ,{options, Opts}]}};
         {'EXIT', Reason} ->
             {error, {socket_setopts_crash, [{reason, Reason}
                                            ,{socket, Sock}
@@ -342,9 +323,7 @@ setopts(TrMod, Sock, SockOpts, Opts) ->
 
 
 -spec
-close(module()
-     ,sockerl_types:socket()
-     ,sockerl_types:start_options()) ->
+close(module(), sockerl_types:socket(), sockerl_types:start_options()) ->
     'ok' | sockerl_types:error().
 %% @doc
 %%      Closes an open socket.
@@ -388,12 +367,11 @@ shutdown(TrMod, Sock, Type, Opts) ->
         ok ->
             ok;
         {error, Reason} ->
-            {error
-            ,{socket_shutdown, [{reason, Reason}
-                               ,{info, format_error(TrMod, Reason)}
-                               ,{transporter, TrMod}
-                               ,{socket, Sock}
-                               ,{type, Type}]}};
+            {error, {socket_shutdown, [{reason, Reason}
+                                      ,{info, format_error(TrMod, Reason)}
+                                      ,{transporter, TrMod}
+                                      ,{socket, Sock}
+                                      ,{type, Type}]}};
         {'EXIT', Reason} ->
             {error, {socket_shutdown_crash, [{reason, Reason}
                                             ,{transporter, TrMod}
@@ -426,22 +404,18 @@ controlling_process(TrMod, Sock, Pid, Opts) ->
         ok ->
             ok;
         {error, Reason} ->
-            {error
-            ,{socket_controlling_process
-             ,[{reason, Reason}
-              ,{info, format_error(Sock, Reason)}
-              ,{transporter, TrMod}
-              ,{socket, Sock}
-              ,{pid, Pid}
-              ,{options, Opts}]}};
+            {error, {socket_controlling_process, [{reason, Reason}
+                                                 ,{info, format_error(Sock, Reason)}
+                                                 ,{transporter, TrMod}
+                                                 ,{socket, Sock}
+                                                 ,{pid, Pid}
+                                                 ,{options, Opts}]}};
         {'EXIT', Reason} ->
-            {error
-            ,{socket_controlling_process_crash
-             ,[{reason, Reason}
-              ,{transporter, TrMod}
-              ,{socket, Sock}
-              ,{pid, Pid}
-              ,{options, Opts}]}}
+            {error, {socket_controlling_process_crash, [{reason, Reason}
+                                                       ,{transporter, TrMod}
+                                                       ,{socket, Sock}
+                                                       ,{pid, Pid}
+                                                       ,{options, Opts}]}}
     end.
 
 
@@ -464,13 +438,12 @@ connect(TrMod, Host, Port, Opts) ->
         {ok, Sock} ->
             {ok, Sock};
         {error, Reason} ->
-            {error
-            ,{socket_connect, [{reason, Reason}
-                              ,{info, format_error(TrMod, Reason)}
-                              ,{transporter, TrMod}
-                              ,{host, Host}
-                              ,{port, Port}
-                              ,{options, Opts}]}};
+            {error, {socket_connect, [{reason, Reason}
+                                     ,{info, format_error(TrMod, Reason)}
+                                     ,{transporter, TrMod}
+                                     ,{host, Host}
+                                     ,{port, Port}
+                                     ,{options, Opts}]}};
         {'EXIT', Reason} ->
             {error, {socket_connect_crash, [{reason, Reason}
                                            ,{transporter, TrMod}
@@ -505,7 +478,5 @@ format_error(TrMod, Reason) ->
         Info when erlang:is_list(Info) orelse erlang:is_binary(Info) ->
             Info;
         _Other ->
-            "Could not get error info from module '" ++
-            erlang:atom_to_list(TrMod) ++
-            "'"
+            "Could not get error info from module '" ++ erlang:atom_to_list(TrMod) ++ "'"
     end.

@@ -31,16 +31,16 @@
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
 %% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
-%% @version 17.7.10
+%% @version 17.9
 %% @hidden
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 
 
 -module(sockerl_acceptor_sup).
 -author("pouriya.jahanbakhsh@gmail.com").
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -73,11 +73,20 @@
 
 
 
+%% -------------------------------------------------------------------------------------------------
+%% Records & Macros & Includes:
+
+
+
+
 
 -define(DEF_START_OPTS, [{log_validate_fun, fun log_validate/2}]).
 
 
-%% ---------------------------------------------------------------------
+
+
+
+%% -------------------------------------------------------------------------------------------------
 %% API functions:
 
 
@@ -115,9 +124,7 @@ fetch(AccSup) ->
 sleep(sockerl_types:name()) ->
     'ok'.
 sleep(AccSup) ->
-    [sockerl_acceptor:sleep(Pid)
-    || {_Id, Pid} <- director:get_pids(AccSup)],
-    ok.
+    lists:foreach(fun({_, Pid}) -> sockerl_acceptor:sleep(Pid) end, director:get_pids(AccSup)).
 
 
 
@@ -129,9 +136,7 @@ sleep(AccSup) ->
 wakeup(sockerl_types:name()) ->
     'ok'.
 wakeup(AccSup) ->
-    [sockerl_acceptor:wakeup(Pid)
-    || {_Id, Pid} <- director:get_pids(AccSup)],
-    ok.
+    lists:foreach(fun({_, Pid}) -> sockerl_acceptor:wakeup(Pid) end, director:get_pids(AccSup)).
 
 
 
@@ -141,12 +146,9 @@ wakeup(AccSup) ->
 
 -spec
 get_mode(sockerl_types:name()) ->
-    sockerl_types:acceptor_mode()                   |
-    [{pos_integer(), sockerl_types:acceptor_mode()}].
+    sockerl_types:acceptor_mode() | [{pos_integer(), sockerl_types:acceptor_mode()}].
 get_mode(AccSup) ->
-    Modes =
-        [{Id, sockerl_acceptor:get_mode(Pid)}
-        || {Id, Pid} <- fetch(AccSup)],
+    Modes = [{Id, sockerl_acceptor:get_mode(Pid)} || {Id, Pid} <- fetch(AccSup)],
     get_mode_fix_return(Modes).
 
 
@@ -163,8 +165,7 @@ change_mode(AccSup) ->
         Modes when erlang:is_list(Modes) ->
             not_allowed;
         _Mode ->
-            erlang:hd([sockerl_acceptor:change_mode(Pid)
-                      || {_Id, Pid} <- fetch(AccSup)])
+            erlang:hd([sockerl_acceptor:change_mode(Pid) || {_, Pid} <- director:get_pids(AccSup)])
     end.
 
 
@@ -177,20 +178,17 @@ change_mode(AccSup) ->
 add(Pool::sockerl_types:name(), sockerl_types:name(), term()) ->
     sockerl_types:start_return().
 add(ConSup, AccSup, Id) ->
-    director:start_child(AccSup
-                        ,#{id => Id
-                          ,start => {sockerl_acceptor
-                                    ,start_link
-                                    ,[ConSup]}
-                          ,append => true
-                          ,plan => []
-                          ,count => 1}).
+    director:start_child(AccSup, #{id => Id
+                                  ,start => {sockerl_acceptor, start_link, [ConSup]}
+                                  ,append => true
+                                  ,plan => []
+                                  ,count => 1}).
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% 'director' callback:
 
 
@@ -198,18 +196,13 @@ add(ConSup, AccSup, Id) ->
 
 %% @hidden
 init({Opts, LSock}) ->
-    {ok
-    ,[]
-    ,#{start => {sockerl_acceptor
-                ,start_link
-                ,[Opts, LSock]}
-      ,plan => [stop]}}.
+    {ok, [], #{start => {sockerl_acceptor, start_link, [Opts, LSock]}, plan => [stop]}}.
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Internal functions:
 
 
@@ -233,6 +226,7 @@ get_mode_fix_return([], _Modes, Mode) ->
 
 get_mode_fix_return([_|_Modes], Modes2, _Mode) ->
     Modes2.
+
 
 
 

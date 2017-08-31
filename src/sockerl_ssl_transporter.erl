@@ -31,12 +31,9 @@
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
 %% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
-%% @version 17.7.10
+%% @version 17.9
 %% @hidden
-%% @doc
-%%          API functions for ssl.
-%% @end
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 
 
 -module(sockerl_ssl_transporter).
@@ -44,7 +41,7 @@
 -behaviour(sockerl_transporter).
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -69,23 +66,23 @@
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Records & Macros & Includes:
 
 
 
 
 
--define(DEFAULT_ACCEPTOR_ACCEPT_TIMEOUT, infinity).
--define(DEFAULT_ACCEPTOR_HANDSHAKE_TIMEOUT, infinity).
--define(DEFAULT_SOCKET_OPTIONS, []).
--define(DEFAULT_CONNECT_TIMEOUT, 3000).
+-define(DEF_ACCEPTOR_ACCEPT_TIMEOUT, infinity).
+-define(DEF_ACCEPTOR_HANDSHAKE_TIMEOUT, infinity).
+-define(DEF_SOCKET_OPTIONS, []).
+-define(DEF_CONNECT_TIMEOUT, 3000).
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% API:
 
 
@@ -93,8 +90,7 @@
 
 
 -spec
-listen(sockerl_types:port_number()
-      ,sockerl_types:start_options()) ->
+listen(sockerl_types:port_number(), sockerl_types:start_options()) ->
     {'ok', sockerl_types:socket()} | sockerl_types:error().
 listen(Port, Opts) ->
     ssl:listen(Port, get_socket_options(Opts)).
@@ -129,8 +125,7 @@ accept(ListenSock, Opts) ->
 
 
 -spec
-is_active(sockerl_types:socket()
-         ,sockerl_types:start_options()) ->
+is_active(sockerl_types:socket(), sockerl_types:start_options()) ->
     {ok, boolean()} | sockerl_types:error().
 is_active(Sock, _Opts) ->
     case ssl:getopts(Sock, [active]) of
@@ -149,10 +144,7 @@ is_active(Sock, _Opts) ->
 
 
 -spec
-recv(sockerl_types:socket()
-    ,sockerl_types:length()
-    ,timeout()
-    ,sockerl_types:start_options()) ->
+recv(sockerl_types:socket(), sockerl_types:length(), timeout(), sockerl_types:start_options()) ->
     {ok, sockerl_types:packet()} | sockerl_types:error().
 recv(Sock, Len, Timeout, _Opts) ->
     ssl:recv(Sock, Len, Timeout).
@@ -165,9 +157,7 @@ recv(Sock, Len, Timeout, _Opts) ->
 
 -spec
 is_socket_message(any(), sockerl_types:start_options()) ->
-    {'true', sockerl_types:packet()} |
-    {'true', sockerl_types:error()}                      |
-    'false'.
+    {'true', sockerl_types:packet()} | {'true', sockerl_types:error()} |'false'.
 is_socket_message({ssl, _Sock, Packet}, _Opts) ->
     {true, Packet};
 
@@ -187,9 +177,7 @@ is_socket_message(_Other, _Opts) ->
 
 
 -spec
-send(sockerl_types:socket()
-    ,sockerl_types:packet()
-    ,sockerl_types:start_options()) ->
+send(sockerl_types:socket(), sockerl_types:packet(), sockerl_types:start_options()) ->
     'ok' | sockerl_types:error().
 send(Sock, Packet, _Opts) ->
     ssl:send(Sock, Packet).
@@ -201,9 +189,7 @@ send(Sock, Packet, _Opts) ->
 
 
 -spec
-setopts(sockerl_types:socket()
-       ,list()
-       ,sockerl_types:start_options()) ->
+setopts(sockerl_types:socket(), list(), sockerl_types:start_options()) ->
     'ok' | sockerl_types:error().
 setopts(Sock, SockOpts, _Opts) ->
     ssl:setopts(Sock, SockOpts).
@@ -216,7 +202,7 @@ setopts(Sock, SockOpts, _Opts) ->
 
 -spec
 close(sockerl_types:socket(), sockerl_types:start_options()) ->
-    ok | sockerl_types:error().
+    'ok' | sockerl_types:error().
 close(Sock, _Opts) ->
     ssl:close(Sock).
 
@@ -227,9 +213,7 @@ close(Sock, _Opts) ->
 
 
 -spec
-shutdown(sockerl_types:socket()
-        ,sockerl_types:shutdown_type()
-        ,sockerl_types:start_options()) ->
+shutdown(sockerl_types:socket(), sockerl_types:shutdown_type(), sockerl_types:start_options()) ->
     'ok' | sockerl_types:error().
 shutdown(Sock, Type, _Opts) ->
     ssl:shutdown(Sock, Type).
@@ -241,9 +225,7 @@ shutdown(Sock, Type, _Opts) ->
 
 
 -spec
-controlling_process(sockerl_types:socket()
-                   ,pid()
-                   ,sockerl_types:start_options()) ->
+controlling_process(sockerl_types:socket(), pid(), sockerl_types:start_options()) ->
     'ok' | sockerl_types:error().
 controlling_process(Sock, Pid, _Opts) ->
     ssl:controlling_process(Sock, Pid).
@@ -255,9 +237,7 @@ controlling_process(Sock, Pid, _Opts) ->
 
 
 -spec
-connect(sockerl_types:host()
-       ,sockerl_types:port_number()
-       ,sockerl_types:start_options()) ->
+connect(sockerl_types:host(), sockerl_types:port_number(), sockerl_types:start_options()) ->
     {'ok', sockerl_types:socket()} | sockerl_types:error().
 connect(Host, Port, Opts) ->
     {SockOpts, CTimeout} = get_socket_options_and_connect_timeout(Opts),
@@ -283,7 +263,7 @@ format_error(Reason) ->
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Internal functions:
 
 
@@ -300,7 +280,7 @@ get_socket_options([{socket_options, SockOpts}|_Rest]) ->
 get_socket_options([_|Rest]) ->
     get_socket_options(Rest);
 get_socket_options([]) ->
-    ?DEFAULT_SOCKET_OPTIONS.
+    ?DEF_SOCKET_OPTIONS.
 
 
 
@@ -318,21 +298,14 @@ get_socket_options_and_connect_timeout(Opts) ->
 
 get_socket_options_and_connect_timeout(_Opts, {SockOpts}, {CTimeout}) ->
     {SockOpts, CTimeout};
-get_socket_options_and_connect_timeout([{socket_options, SockOpts}|Rest]
-                                      ,_SockOpts
-                                      ,CTimeout) ->
+get_socket_options_and_connect_timeout([{socket_options, SockOpts}|Rest], _SockOpts, CTimeout) ->
     case sockerl_utils:filter_socket_options(SockOpts) of
         ok ->
-            get_socket_options_and_connect_timeout(Rest
-                                                  ,{SockOpts}
-                                                  ,CTimeout);
+            get_socket_options_and_connect_timeout(Rest, {SockOpts}, CTimeout);
         {error, _Reason}=Error ->
             Error
     end;
-get_socket_options_and_connect_timeout([{connect_timeout, CTimeout}
-                                       |Rest]
-                                      ,SockOpts
-                                      ,_CTimeout) ->
+get_socket_options_and_connect_timeout([{connect_timeout, CTimeout} | Rest], SockOpts, _CTimeout) ->
     get_socket_options_and_connect_timeout(Rest, SockOpts, {CTimeout});
 get_socket_options_and_connect_timeout([_|Rest], SockOpts, CTimeout) ->
     get_socket_options_and_connect_timeout(Rest, SockOpts, CTimeout);
@@ -341,13 +314,13 @@ get_socket_options_and_connect_timeout([], SockOpts, CTimeout) ->
          {SockOpts2} ->
              SockOpts2;
          undefined ->
-             ?DEFAULT_SOCKET_OPTIONS
+             ?DEF_SOCKET_OPTIONS
      end
         ,case CTimeout of
              {CTimeout2} ->
                  CTimeout2;
              undefined ->
-                 ?DEFAULT_CONNECT_TIMEOUT
+                 ?DEF_CONNECT_TIMEOUT
          end}.
 
 
@@ -366,14 +339,13 @@ get_accept_and_handshake_timeout(Opts) ->
 
 get_accept_and_handshake_timeout(_Opts, {ATimeout}, {HTimeout}) ->
     {ATimeout, HTimeout};
-get_accept_and_handshake_timeout([{acceptor_accept_timeout, ATimeout}|Rest]
-                                      ,_ATimeout
-                                      ,HTimeout) ->
+get_accept_and_handshake_timeout([{acceptor_accept_timeout, ATimeout} | Rest]
+                                ,_ATimeout
+                                ,HTimeout) ->
     get_accept_and_handshake_timeout(Rest, {ATimeout}, HTimeout);
-get_accept_and_handshake_timeout([{acceptor_handshake_timeout, HTimeout}
-                                       |Rest]
-                                      ,ATimeout
-                                      ,_CTimeout) ->
+get_accept_and_handshake_timeout([{acceptor_handshake_timeout, HTimeout} | Rest]
+                                ,ATimeout
+                                ,_CTimeout) ->
     get_accept_and_handshake_timeout(Rest, ATimeout, {HTimeout});
 get_accept_and_handshake_timeout([_|Rest], ATimeout, HTimeout) ->
     get_accept_and_handshake_timeout(Rest, ATimeout, HTimeout);
@@ -382,11 +354,11 @@ get_accept_and_handshake_timeout([], ATimeout, HTimeout) ->
          {ATimeout2} ->
              ATimeout2;
          undefined ->
-             ?DEFAULT_ACCEPTOR_ACCEPT_TIMEOUT
+             ?DEF_ACCEPTOR_ACCEPT_TIMEOUT
      end
         ,case HTimeout of
              {HTimeout2} ->
                  HTimeout2;
              undefined ->
-                 ?DEFAULT_ACCEPTOR_HANDSHAKE_TIMEOUT
+                 ?DEF_ACCEPTOR_HANDSHAKE_TIMEOUT
          end}.

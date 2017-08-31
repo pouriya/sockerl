@@ -31,16 +31,16 @@
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
 %% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
-%% @version 17.7.10
+%% @version 17.9
 %% @hidden
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 
 
 -module(sockerl_connector_sup).
 -author("pouriya.jahanbakhsh@gmail.com").
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -83,26 +83,25 @@
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Records & Macros & Includes:
 
 
 
 
 
--define(DEFAULT_START_OPTIONS, [{log_validate_fun, fun log_validate/2}]).
--define(DEFAULT_CHILDSPEC_PLAN
-       ,[fun sockerl_utils:default_connector_plan_fun/3]).
--define(DEFAULT_CHILDSPEC_COUNT, 1).
--define(DEFAULT_TERMINATE_TIMEOUT, 10*1000).
--define(DEFAULT_CONNECTOR_COUNT, 1).
--define(DEFAULT_CONNECTOR_PER_ADDRESS, 1).
+-define(DEF_START_OPTIONS, [{log_validate_fun, fun log_validate/2}]).
+-define(DEF_CHILDSPEC_PLAN, [fun sockerl_utils:default_connector_plan_fun/3]).
+-define(DEF_CHILDSPEC_COUNT, 1).
+-define(DEF_TERMINATE_TIMEOUT, 10*1000).
+-define(DEF_CONNECTOR_COUNT, 1).
+-define(DEF_CONNECTOR_PER_ADDRESS, 1).
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% API:
 
 
@@ -110,20 +109,14 @@
 
 
 -spec
-start_link(module()
-          ,term()
-          ,sockerl_types:addresses()) ->
+start_link(module(), term(), sockerl_types:addresses()) ->
     sockerl_types:start_return().
 %% @doc
 %%      starts and links a connection pool supervisor.
 %% @end
 start_link(Mod, InitArg, Addrs) when erlang:is_atom(Mod),
                                      erlang:is_list(Addrs) ->
-    director:start_link(?MODULE
-                       ,{Mod
-                        ,InitArg
-                        ,Addrs
-                        ,?DEFAULT_START_OPTIONS}).
+    director:start_link(?MODULE, {Mod, InitArg, Addrs, ?DEF_START_OPTIONS}).
 
 
 
@@ -140,24 +133,13 @@ start_link(sockerl_types:register_name() | module()
 %% @doc
 %%      starts and links a connection pool supervisor.
 %% @end
-start_link(Name
-          ,Mod
-          ,InitArg
-          ,Addrs) when erlang:is_tuple(Name),
-                       erlang:is_atom(Mod),
-                       erlang:is_list(Addrs) ->
-    director:start_link(Name
-                       ,?MODULE
-                       ,{Mod
-                        ,InitArg
-                        ,Addrs
-                        ,?DEFAULT_START_OPTIONS});
-start_link(Mod
-          ,InitArg
-          ,Addrs
-          ,Opts) when erlang:is_atom(Mod),
-                      erlang:is_list(Addrs),
-                      erlang:is_list(Opts) ->
+start_link(Name, Mod, InitArg, Addrs) when erlang:is_tuple(Name),
+                                           erlang:is_atom(Mod),
+                                           erlang:is_list(Addrs) ->
+    director:start_link(Name, ?MODULE, {Mod, InitArg, Addrs, ?DEF_START_OPTIONS});
+start_link(Mod, InitArg, Addrs, Opts) when erlang:is_atom(Mod),
+                                           erlang:is_list(Addrs),
+                                           erlang:is_list(Opts) ->
     director:start_link(?MODULE, {Mod, InitArg, Addrs, Opts}).
 
 
@@ -176,17 +158,11 @@ start_link(sockerl_types:register_name()
 %% @doc
 %%      starts and links a connection pool supervisor.
 %% @end
-start_link(Name
-          ,Mod
-          ,InitArg
-          ,Addrs
-          ,Opts) when erlang:is_tuple(Name),
-                      erlang:is_atom(Mod),
-                      erlang:is_list(Addrs),
-                      erlang:is_list(Opts) ->
-    director:start_link(Name
-                       ,?MODULE
-                       ,{Mod, InitArg, Addrs, Opts}).
+start_link(Name, Mod, InitArg, Addrs, Opts) when erlang:is_tuple(Name),
+                                                 erlang:is_atom(Mod),
+                                                 erlang:is_list(Addrs),
+                                                 erlang:is_list(Opts) ->
+    director:start_link(Name, ?MODULE, {Mod, InitArg, Addrs, Opts}).
 
 
 
@@ -210,22 +186,17 @@ fetch(ConSup) ->
 
 
 -spec
-add(sockerl_types:name()
-   ,sockerl_types:host()
-   ,sockerl_types:port_number()) ->
+add(sockerl_types:name(), sockerl_types:host(), sockerl_types:port_number()) ->
     sockerl_types:start_return().
 %% @doc
 %%      Adds new connector for Host:Port in pool.
 %% @end
 add(ConSup, Host, Port) ->
-    director:start_child(ConSup
-                        ,#{id => erlang:make_ref()
-                         ,start => {sockerl_connector
-                                   ,start_link
-                                   ,[Host, Port]}
-                         ,append => true
-                         ,count => 0
-                         ,plan => []}).
+    director:start_child(ConSup, #{id => erlang:make_ref()
+                                  ,start => {sockerl_connector, start_link, [Host, Port]}
+                                  ,append => true
+                                  ,count => 0
+                                  ,plan => []}).
 
 
 
@@ -240,7 +211,7 @@ stop(sockerl_types:name()) ->
 %%      stops pool and all of its connections.
 %% @end
 stop(Server) ->
-    director:stop(Server, normal, ?DEFAULT_TERMINATE_TIMEOUT).
+    director:stop(Server, normal, ?DEF_TERMINATE_TIMEOUT).
 
 
 
@@ -255,13 +226,13 @@ stop(sockerl_types:name(), Reason::any()) ->
 %%      stops pool and all of its connections.
 %% @end
 stop(Server, Reason) ->
-    director:stop(Server, Reason, ?DEFAULT_TERMINATE_TIMEOUT).
+    director:stop(Server, Reason, ?DEF_TERMINATE_TIMEOUT).
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% 'sockerl_server_connection_sup' callbacks:
 
 
@@ -271,7 +242,7 @@ stop(Server, Reason) ->
 %% @hidden
 start_link_(Mod, InitArg, Opts) when erlang:is_atom(Mod) andalso
                                      erlang:is_list(Opts) ->
-    director:start_link(?MODULE, {Mod, InitArg, Opts}).
+    director:start_link(?MODULE, {Mod, InitArg, Opts}, ?DEF_START_OPTIONS).
 
 
 
@@ -284,20 +255,17 @@ start_link_(Mod, InitArg, Opts) when erlang:is_atom(Mod) andalso
 add(sockerl_types:name(), sockerl_types:socket()) ->
     sockerl_types:start_return().
 add(ConSup, Sock) ->
-    director:start_child(ConSup
-                        ,#{id => erlang:make_ref()
-                         ,start => {sockerl_connector
-                                   ,start_link
-                                   ,[Sock]}
-                         ,append => true
-                         ,count => 0
-                         ,plan => []}).
+    director:start_child(ConSup, #{id => erlang:make_ref()
+                                  ,start => {sockerl_connector, start_link, [Sock]}
+                                  ,append => true
+                                  ,count => 0
+                                  ,plan => []}).
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% 'director' callback:
 
 
@@ -308,39 +276,35 @@ add(ConSup, Sock) ->
 init({Mod, InitArg, Opts}) ->
     ConPlan = sockerl_utils:get_value(connector_childspec_plan
                                      ,Opts
-                                     ,?DEFAULT_CHILDSPEC_PLAN
+                                     ,?DEF_CHILDSPEC_PLAN
                                      ,fun director_utils:filter_plan/1),
     ConRunPlanCount =
         sockerl_utils:get_value(connector_childspec_count
                                ,Opts
-                               ,?DEFAULT_CHILDSPEC_COUNT
+                               ,?DEF_CHILDSPEC_COUNT
                                ,fun sockerl_utils:is_timeout/1),
-    {ok
-    ,[]
-    ,#{start => {sockerl_connector, start_link, [Mod, InitArg, Opts]}
-      ,count => ConRunPlanCount
-      ,plan => ConPlan
-      ,type => worker}};
+    {ok, [], #{start => {sockerl_connector, start_link, [Mod, InitArg, Opts]}
+              ,count => ConRunPlanCount
+              ,plan => ConPlan
+              ,type => worker}};
 
 init({Mod, InitArg, Addrs0, Opts}) ->
     Addrs = sockerl_utils:get_value(addresses
                                    ,[{addresses, Addrs0}]
-                                   ,?DEFAULT_CONNECTOR_COUNT
+                                   ,?DEF_CONNECTOR_COUNT
                                    ,fun filter_addresses/1),
-    ConCount =
-        sockerl_utils:get_value(connector_per_address
-                               ,Opts
-                               ,?DEFAULT_CONNECTOR_PER_ADDRESS
-                               ,fun sockerl_utils:is_whole_integer/1),
+    ConCount = sockerl_utils:get_value(connector_per_address
+                                      ,Opts
+                                      ,?DEF_CONNECTOR_PER_ADDRESS
+                                      ,fun sockerl_utils:is_whole_integer/1),
     ConPlan = sockerl_utils:get_value(connector_childspec_plan
                                      ,Opts
-                                     ,?DEFAULT_CHILDSPEC_PLAN
+                                     ,?DEF_CHILDSPEC_PLAN
                                      ,fun director_utils:filter_plan/1),
-    ConRunPlanCount =
-        sockerl_utils:get_value(connector_childspec_count
-                               ,Opts
-                               ,?DEFAULT_CHILDSPEC_COUNT
-                               ,fun sockerl_utils:is_timeout/1),
+    ConRunPlanCount = sockerl_utils:get_value(connector_childspec_count
+                                             ,Opts
+                                             ,?DEF_CHILDSPEC_COUNT
+                                             ,fun sockerl_utils:is_timeout/1),
     ChildSpecs = [[#{id => erlang:make_ref()
                     ,start => {sockerl_connector
                               ,start_link
@@ -349,21 +313,17 @@ init({Mod, InitArg, Addrs0, Opts}) ->
                     ,plan => ConPlan
                     ,type => worker} || _ <- lists:seq(1, ConCount)]
                   || {Host, Port} <- Addrs],
-    {ok
-    ,lists:concat(ChildSpecs)
-    ,#{id => erlang:make_ref()
-      ,start => {sockerl_connector
-                ,start_link
-                ,[Mod, InitArg, Opts]}
-      ,count => ConRunPlanCount
-      ,plan => ConPlan
-      ,type => worker}}.
+    {ok, lists:concat(ChildSpecs), #{id => erlang:make_ref()
+                                    ,start => {sockerl_connector, start_link,[Mod, InitArg, Opts]}
+                                    ,count => ConRunPlanCount
+                                    ,plan => ConPlan
+                                    ,type => worker}}.
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Internal functions:
 
 

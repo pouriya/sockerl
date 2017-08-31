@@ -30,12 +30,15 @@
 %%% OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
+%% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
+%% @version 17.9
+%% -------------------------------------------------------------------------------------------------
 
 -module(sockerl).
 -author("pouriya.jahanbakhsh@gmail.com").
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -76,7 +79,7 @@
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Behaviour info:
 
 
@@ -325,7 +328,7 @@ when
     Metadata ::  sockerl_types:metadata(),
     Opts :: [] | [Opt],
     % Don't use {'packet', Pkt}, {'setopts, Opts} ... because socket has
-    % been closed and after this terminate/3 will called.
+    % been closed and after this terminate/3 will be called.
     Opt :: {'state', any()},
     Reason :: any().
 
@@ -362,7 +365,7 @@ code_change(OldVsn, State, Extra) ->
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% API functions:
 
 
@@ -394,14 +397,8 @@ start_link_server(sockerl_types:register_name() | module()
 %% @doc
 %%      Starts and links a socket server.
 %% @end
-start_link_server(Name_or_Mod
-                 ,Mod_or_InitArg
-                 ,InitArg_or_Port
-                 ,Port_or_Opts) ->
-    sockerl_server_sup:start_link(Name_or_Mod
-                                 ,Mod_or_InitArg
-                                 ,InitArg_or_Port
-                                 ,Port_or_Opts).
+start_link_server(Name_or_Mod, Mod_or_InitArg, InitArg_or_Port, Port_or_Opts) ->
+    sockerl_server_sup:start_link(Name_or_Mod, Mod_or_InitArg, InitArg_or_Port, Port_or_Opts).
 
 
 
@@ -547,9 +544,7 @@ stop_server(Server, Reason) ->
 
 
 -spec
-start_link_connector_pool(module()
-                         ,term()
-                         ,sockerl_types:addresses()) ->
+start_link_connector_pool(module(), term(), sockerl_types:addresses()) ->
     sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection pool.
@@ -574,14 +569,8 @@ start_link_connector_pool(sockerl_types:register_name()|
 %% @doc
 %%      Starts and links a socket connection pool.
 %% @end
-start_link_connector_pool(Name_or_Mod
-                          ,Mod_or_InitArg
-                          ,InitArg_or_Addrs
-                          ,Addrs_or_Opts) ->
-    sockerl_connector_sup:start_link(Name_or_Mod
-                                     ,Mod_or_InitArg
-                                     ,InitArg_or_Addrs
-                                     ,Addrs_or_Opts).
+start_link_connector_pool(Name_or_Mod, Mod_or_InitArg, InitArg_or_Addrs, Addrs_or_Opts) ->
+    sockerl_connector_sup:start_link(Name_or_Mod, Mod_or_InitArg, InitArg_or_Addrs, Addrs_or_Opts).
 
 
 
@@ -624,9 +613,7 @@ get_pool_connections(Pool) ->
 
 
 -spec
-add_connector(sockerl_types:name()
-             ,sockerl_types:host()
-             ,sockerl_types:port_number()) ->
+add_connector(sockerl_types:name(), sockerl_types:host(), sockerl_types:port_number()) ->
     sockerl_types:start_return().
 %% @doc
 %%      Adds new connector for Host:Port in pool.
@@ -671,10 +658,7 @@ stop_pool(Pool, Reason) ->
 
 
 -spec
-start_link_connector(module()
-                    ,term()
-                    ,sockerl_types:hostname()
-                    ,sockerl_types:port_number()) ->
+start_link_connector(module(), term(), sockerl_types:hostname(), sockerl_types:port_number()) ->
     sockerl_types:start_return().
 %% @doc
 %%      Starts and links a socket connection process.
@@ -700,11 +684,7 @@ start_link_connector(sockerl_types:register_name() | module()
 %% @doc
 %%      Starts and links a socket connection process.
 %% @end
-start_link_connector(Name_or_Mod
-                     ,Mod_or_InitArg
-                     ,InitArg_or_Host
-                     ,Host_or_Port
-                     ,Port_or_Opts) ->
+start_link_connector(Name_or_Mod, Mod_or_InitArg, InitArg_or_Host, Host_or_Port, Port_or_Opts) ->
     sockerl_connector:start_link(Name_or_Mod
                                 ,Mod_or_InitArg
                                 ,InitArg_or_Host

@@ -31,16 +31,16 @@
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
 %% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
-%% @version 17.7.10
+%% @version 17.9
 %% @hidden
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 
 
 -module(sockerl_utils).
 -author("pouriya.jahanbakhsh@gmail.com").
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -62,7 +62,7 @@
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% API:
 
 
@@ -94,13 +94,7 @@ get_value(Key, Opts, Def) ->
 
 
 -spec
-get_value(any()
-         ,list()
-         ,any()
-         ,fun((any()) -> ok
-                       | {ok, term()}
-                       | {error, term()}
-                       | boolean())) ->
+get_value(any(), list(), any(), fun((any()) -> ok | {ok, term()} | {error, term()} | boolean())) ->
     any().
 %% @doc
 %%      gets value of Key from Opts. if not found, default value Def
@@ -181,9 +175,7 @@ debug_options(Name, Pid, DbgOpts) ->
         sys:debug_options(DbgOpts)
     catch
         _ErrorType:_Reason ->
-            error_logger:warning_report("~p [~p]: bad debug options: \""
-                                        "~p\""
-                                       ,[Pid, Name, DbgOpts]),
+            error_logger:warning_report("~p [~p]: bad debug options: ~p", [Pid, Name, DbgOpts]),
             []
     end.
 
@@ -222,9 +214,7 @@ filter_socket_options(SockOpts) when erlang:is_list(SockOpts) ->
                 erlang:is_boolean(Val) ->
                     filter_socket_options(SockOpts2);
                 true ->
-                    {error
-                    ,{socket_options, [{active, Val}
-                                      ,{socket_options, SockOpts}]}}
+                    {error, {socket_options, [{active, Val}, {socket_options, SockOpts}]}}
             end;
         false ->
             ok
@@ -236,7 +226,7 @@ filter_socket_options(Other) ->
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Internal functions:
 
 
@@ -258,18 +248,14 @@ do_get_value(Key, Opts, Def, Filter) ->
                         true ->
                             Value;
                         false ->
-                            erlang:error({option_value_type
-                                         ,[{key, Key}
-                                          ,{value, Value}
-                                          ,{stacktrace
-                                           ,stacktrace(2)}]});
+                            erlang:error({option_value_type, [{key, Key}
+                                                             ,{value, Value}
+                                                             ,{stacktrace, stacktrace(2)}]});
                         {error, Reason} ->
-                            erlang:error({option_value
-                                         ,[{reason, Reason}
-                                          ,{key, Key}
-                                          ,{value, Value}
-                                          ,{stacktrace
-                                           ,stacktrace(2)}]})
+                            erlang:error({option_value, [{reason, Reason}
+                                                        ,{key, Key}
+                                                        ,{value, Value}
+                                                        ,{stacktrace, stacktrace(2)}]})
                     end
             end;
         false ->
@@ -277,8 +263,6 @@ do_get_value(Key, Opts, Def, Filter) ->
                 {default, Def2} ->
                     Def2;
                 undefined ->
-                    erlang:error({value_not_found
-                                 ,[{key, Key}
-                                  ,{stacktrace, stacktrace(2)}]})
+                    erlang:error({value_not_found, [{key, Key}, {stacktrace, stacktrace(2)}]})
             end
     end.

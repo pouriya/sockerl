@@ -31,16 +31,16 @@
 %%% POSSIBILITY OF SUCH DAMAGE.
 %%% ------------------------------------------------------------------------------------------------
 %% @author  Pouriya Jahanbakhsh <pouriya.jahanbakhsh@gmail.com>
-%% @version 17.7.10
+%% @version 17.9
 %% @hidden
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 
 
 -module(sockerl_server_connection_sup).
 -author("pouriya.jahanbakhsh@gmail.com").
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Exports:
 
 
@@ -63,6 +63,13 @@
 
 
 
+%% -------------------------------------------------------------------------------------------------
+%% Recrods & Macros & Includes:
+
+
+
+
+
 
 -define(DEF_START_OPTS, [{log_validate_fun, fun log_validate/2}]).
 
@@ -70,7 +77,7 @@
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Internal functions:
 
 
@@ -100,11 +107,7 @@ add(sockerl_types:name(), term()) ->
 %%      adds new supervisor to connection supervisor.
 %% @end
 add(RootSup, Id) ->
-    director:start_child(RootSup
-                        ,#{plan => []
-                         ,count => 0
-                         ,id => Id
-                         ,append => true}).
+    director:start_child(RootSup, #{plan => [],count => 0,id => Id,append => true}).
 
 
 
@@ -126,7 +129,7 @@ fetch(RootSup) ->
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% 'director' callback:
 
 
@@ -135,20 +138,16 @@ fetch(RootSup) ->
 
 %% @hidden
 init({Mod, InitArg, Opts}) ->
-    {ok
-    ,[]
-    ,#{start => {sockerl_connector_sup
-                ,start_link_
-                ,[Mod, InitArg, Opts]}
-      ,plan => [stop]
-      ,type => supervisor
-      ,count => 1}}.
+    {ok, [], #{start => {sockerl_connector_sup, start_link_, [Mod, InitArg, Opts]}
+              ,plan => [stop]
+              ,type => supervisor
+              ,count => 1}}.
 
 
 
 
 
-%% ---------------------------------------------------------------------
+%% -------------------------------------------------------------------------------------------------
 %% Internal functions:
 
 
