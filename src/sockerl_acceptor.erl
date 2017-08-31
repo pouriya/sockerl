@@ -440,7 +440,7 @@ terminate(Dbg
             error_logger:format("** Sockerl acceptor ~p terminating \n"
                                 "** Reason for termination == ~p\n"
                                 "** State == ~p\n"
-                               ,[Name, Reason, State]),
+                               ,[Name, Reason, State])
     end,
     sys:print_log(Dbg),
     erlang:exit(Reason).
