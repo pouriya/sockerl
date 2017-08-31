@@ -66,6 +66,13 @@
 
 
 
+
+-define(DEF_START_OPTS, [{log_validate_fun, fun log_validate/2}]).
+
+
+
+
+
 %% ---------------------------------------------------------------------
 %% Internal functions:
 
@@ -81,7 +88,7 @@ start_link(module(), term(), sockerl_types:start_options()) ->
 %%      connection supervisor(s).
 %% @end
 start_link(Mod, InitArg ,Opts) ->
-    director:start_link(?MODULE, {Mod, InitArg, Opts}).
+    director:start_link(?MODULE, {Mod, InitArg, Opts}, ?DEF_START_OPTS).
 
 
 
@@ -166,3 +173,16 @@ concat([[]|List], List2) ->
     concat(List, List2);
 concat([], List2) ->
     List2.
+
+
+
+
+
+log_validate('$director', {warning, _}) ->
+    long;
+log_validate(_, {info, start}) ->
+    none;
+log_validate(_, {error, normal}) ->
+    none;
+log_validate(_, _) ->
+    long.

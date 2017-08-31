@@ -93,9 +93,9 @@
 
 
 
--define(DEFAULT_START_OPTIONS, []).
+-define(DEFAULT_START_OPTIONS, [{log_validate_fun, fun log_validate/2}]).
 -define(DEFAULT_CHILDSPEC_PLAN
-       ,[fun sockerl_utils:default_connector_plan_fun/2]).
+       ,[fun sockerl_utils:default_connector_plan_fun/3]).
 -define(DEFAULT_CHILDSPEC_COUNT, 1).
 -define(DEFAULT_TERMINATE_TIMEOUT, 10*1000).
 -define(DEFAULT_CONNECTOR_COUNT, 1).
@@ -312,7 +312,7 @@ init({Mod, InitArg, Opts}) ->
     ConPlan = sockerl_utils:get_value(connector_childspec_plan
                                      ,Opts
                                      ,?DEFAULT_CHILDSPEC_PLAN
-                                     ,fun director_check:filter_plan/1),
+                                     ,fun director_utils:filter_plan/1),
     ConRunPlanCount =
         sockerl_utils:get_value(connector_childspec_count
                                ,Opts
@@ -338,7 +338,7 @@ init({Mod, InitArg, Addrs0, Opts}) ->
     ConPlan = sockerl_utils:get_value(connector_childspec_plan
                                      ,Opts
                                      ,?DEFAULT_CHILDSPEC_PLAN
-                                     ,fun director_check:filter_plan/1),
+                                     ,fun director_utils:filter_plan/1),
     ConRunPlanCount =
         sockerl_utils:get_value(connector_childspec_count
                                ,Opts
@@ -388,3 +388,15 @@ filter_addresses([], Addrs2) ->
     {ok, lists:reverse(Addrs2)};
 filter_addresses([Other|_Addrs], _Addrs) ->
     {error, {address_format, [{address, Other}]}}.
+
+
+
+
+log_validate(_, {error, normal}) ->
+    none;
+log_validate('$director', {error, _}) ->
+    none;
+log_validate(_, {info, start}) ->
+    short;
+log_validate(_, _) ->
+    long.

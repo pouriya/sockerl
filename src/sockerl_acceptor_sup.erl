@@ -76,6 +76,10 @@
 
 
 
+
+-define(DEF_START_OPTS, [{log_validate_fun, fun log_validate/2}]).
+
+
 %% ---------------------------------------------------------------------
 %% API functions:
 
@@ -87,7 +91,7 @@
 start_link(sockerl_types:start_options(), sockerl_types:socket()) ->
     sockerl_types:start_return().
 start_link(Opts, LSock) ->
-    director:start_link(?MODULE, {Opts, LSock}).
+    director:start_link(?MODULE, {Opts, LSock}, ?DEF_START_OPTS).
 
 
 
@@ -232,3 +236,17 @@ get_mode_fix_return([], _Modes, Mode) ->
 
 get_mode_fix_return([_|_Modes], Modes2, _Mode) ->
     Modes2.
+
+
+
+
+
+
+log_validate('$director', {warning, _}) ->
+    long;
+log_validate(_, {info, start}) ->
+    none;
+log_validate(_, {error, normal}) ->
+    none;
+log_validate(_, _) ->
+    long.

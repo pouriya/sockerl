@@ -85,7 +85,7 @@
 
 -define(ACCEPTOR_SUP, acceptor_sup).
 -define(CONNECTION_SUP, connection_sup).
--define(DEFAULT_SERVER_START_OPTIONS, []).
+-define(DEF_START_OPTS, [{log_validate_fun, fun log_validate/2}]).
 -define(DEFAULT_ACCEPTOR_COUNT, 1).
 -define(DEFAULT_SOCKET_OPTIONS, []).
 -define(DEFAULT_SSL_FLAG, false).
@@ -108,7 +108,7 @@ start_link(module(), term(), sockerl_types:port_number()) ->
      sockerl_types:start_return().
 start_link(Mod, InitArg, Port) when erlang:is_atom(Mod),
                                     erlang:is_integer(Port) ->
-    start_link(Mod, InitArg, Port, ?DEFAULT_SERVER_START_OPTIONS).
+    start_link(Mod, InitArg, Port, ?DEF_START_OPTS).
 
 
 
@@ -126,7 +126,7 @@ start_link(sockerl_types:register_name() | module()
 start_link(Mod, InitArg, Port, Opts) when erlang:is_atom(Mod),
                                           erlang:is_integer(Port),
                                           erlang:is_list(Opts)->
-    case director:start_link(?MODULE, {Mod, InitArg, Port, Opts}) of
+    case director:start_link(?MODULE, {Mod, InitArg, Port, Opts}, ?DEF_START_OPTS) of
         {ok, Pid} ->
             continue_starting(Opts, Pid);
         {error, _Reason}=Error ->
@@ -142,9 +142,9 @@ start_link(Name, Mod, InitArg, Port) when erlang:is_tuple(Name),
                             ,{Mod
                              ,InitArg
                              ,Port
-                             ,?DEFAULT_SERVER_START_OPTIONS}) of
+                             ,?DEF_START_OPTS}) of
         {ok, Pid} ->
-            continue_starting(?DEFAULT_SERVER_START_OPTIONS, Pid);
+            continue_starting(?DEF_START_OPTS, Pid);
         {error, _Reason}=Error ->
             Error;
         ignore ->
@@ -170,7 +170,7 @@ start_link(Name, Mod, InitArg, Port, Opts) when erlang:is_tuple(Name),
                                                 erlang:is_list(Opts) ->
     case director:start_link(Name
                             ,?MODULE
-                            ,{Mod, InitArg, Port, Opts}) of
+                            ,{Mod, InitArg, Port, Opts}, ?DEF_START_OPTS) of
         {ok, Pid} ->
             continue_starting(Opts, Pid);
         {error, _Reason}=Error ->
@@ -402,3 +402,14 @@ start_acceptors(ConSups, AccSupPid) ->
         [sockerl_acceptor_sup:add(ConSup, AccSupPid, Id)
         || {Id, ConSup} <- ConSups],
     ok.
+
+
+
+
+
+log_validate(_, {info, start}) ->
+    none;
+log_validate(_, {error, normal}) ->
+    short;
+log_validate(_, _) ->
+    long.

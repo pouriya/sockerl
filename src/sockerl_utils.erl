@@ -57,7 +57,7 @@
         ,is_timeout/1
         ,is_whole_integer/1
         ,debug_options/3
-        ,default_connector_plan_fun/2
+        ,default_connector_plan_fun/3
         ,filter_socket_options/1
         ,stacktrace/1]).
 
@@ -197,16 +197,16 @@ debug_options(Name, Pid, DbgOpts) ->
 
 
 -spec
-default_connector_plan_fun(term(), pos_integer()) ->
+default_connector_plan_fun(term(), term(), pos_integer()) ->
     'delete' | 'stop'.
 %% @doc
 %%      It can be used as plan element in director plan.
 %%       if process crashed with reason 'normal', supervisor will remove
 %%       it from its children, if crashed with other reasons, supervisor
 %%       swill crash with that reasons.
-default_connector_plan_fun(normal, _RestartCount) ->
+default_connector_plan_fun(_, normal, _RestartCount) ->
     delete;
-default_connector_plan_fun(_Reason, _RestartCount) ->
+default_connector_plan_fun(_, _Reason, _RestartCount) ->
     stop.
 
 
