@@ -3,7 +3,7 @@
                           ,length
                           ,srtimeout
                           ,transporter
-                          ,options
                           ,last_message
                           ,last_callback
-                          ,address}).
+                          ,options = []
+                          ,address = {undefined, undefined}}).
