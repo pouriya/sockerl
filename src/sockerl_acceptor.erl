@@ -433,10 +433,15 @@ terminate(Dbg
                  ,listen_socket = ListenSock}=State
          ,Reason) ->
     _ = sockerl_socket:close(TrMod, ListenSock, Opts),
-    error_logger:format("** Sockerl acceptor ~p terminating \n"
-                        "** Reason for termination == ~p\n"
-                        "** State == ~p\n"
-                       ,[Name, Reason, State]),
+    if
+        Reason == normal ->
+            ok;
+        true ->
+            error_logger:format("** Sockerl acceptor ~p terminating \n"
+                                "** Reason for termination == ~p\n"
+                                "** State == ~p\n"
+                               ,[Name, Reason, State]),
+    end,
     sys:print_log(Dbg),
     erlang:exit(Reason).
 
