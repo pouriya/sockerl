@@ -805,8 +805,8 @@ terminate(Dbg
             _Other ->
                 Reason
         end,
-    error_logger:format("** Sockerl connector ~p terminating \n "
-                        "** Reason for termination == ~p\n "
+    error_logger:format("** Sockerl connector ~p terminating \n"
+                        "** Reason for termination == ~p\n"
                         "** State == ~p\n"
                        ,[Name, Reason2, Data]),
     _ = sockerl_socket:close(TrMod, Sock, Opts),
