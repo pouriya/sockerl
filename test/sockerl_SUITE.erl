@@ -7,16 +7,29 @@
         ,'1'/1
         ,'2'/1
         ,'3'/1
-        ,'4'/1]).
+        ,'4'/1
+        ,'5'/1
+        ,'6'/1]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("common_test/include/ct.hrl").
 -define(HOST, "127.0.0.1").
 -define(PORT, 8080).
--define(REUSE_ADDR, {reuseaddr, true}).
--define(REUSE_ADDR_START_OPTIONS, [{socket_options, [?REUSE_ADDR]}]).
--define(ACC_DBG, {acceptor_debug, [trace]}).
--define(CON_DBG, {connector_debug, [trace]}).
+-define(REUSEADDR_OPTS, [{reuseaddr, true}]).
+-define(SOCK_OPTS(Opts), [{socket_options, lists:concat(Opts)}]).
+-define(ACC_DBG_OPTS, [{acceptor_debug, [trace]}]).
+-define(CON_DBG_OPTS, [{connector_debug, [trace]}]).
+-define(SERVER_OPTS, ?ACC_DBG_OPTS ++ ?CON_DBG_OPTS ++ ?SOCK_OPTS([?REUSEADDR_OPTS])).
+-define(B_SERVER_OPTS, ?ACC_DBG_OPTS ++ ?CON_DBG_OPTS ++ ?SOCK_OPTS([?REUSEADDR_OPTS, [{active, false}]])).
+-define(B_CLIENT_OPTS, ?CON_DBG_OPTS ++ ?SOCK_OPTS([[{active, false}]])).
+-define(KEYFILE_OPTS(PList), [{keyfile, get_key_file(PList)}]).
+-define(CERTFILE_OPTS(PList), [{certfile, get_cert_file(PList)}]).
+-define(SSL_TRANSPORTER_OPTS, [{transporter, sockerl_ssl_transporter}]).
+-define(SSL_SERVER_OPTS(Config)
+       ,?ACC_DBG_OPTS ++ ?CON_DBG_OPTS ++ ?SOCK_OPTS([?REUSEADDR_OPTS
+                                                     ,?KEYFILE_OPTS(Config)
+                                                     ,?CERTFILE_OPTS(Config)]) ++ ?SSL_TRANSPORTER_OPTS).
+-define(SSL_CLIENT_OPTS, ?SSL_TRANSPORTER_OPTS ++ ?CON_DBG_OPTS).
 
 init_per_suite(Config) ->
     application:start(sasl),
@@ -45,62 +58,132 @@ end_per_testcase(_TCName, _Config) ->
 
 all() ->
     [erlang:list_to_atom(erlang:integer_to_list(Int))
-    || Int <- lists:seq(1, 4)].
+    || Int <- lists:seq(1, erlang:length(?MODULE:module_info(exports)) - 8)].
 
 
 
-'1'(Config) ->
+
+'1'(_Config) ->
+    TPid = erlang:self(),
+    SRes = sockerl_server:start_link(testtt, fun() -> {ok, fun() -> {ok, [{state, TPid}]} end} end, ?PORT+1, ?SERVER_OPTS),
+    ?assertMatch({ok, _Pid}, SRes),
+    {ok, SPid} = SRes,
+    ?assert(erlang:is_process_alive(SPid)),
+
+    ?assertEqual([], sockerl:get_server_connections(SPid)),
+    ?assertMatch([{1, _}], sockerl:get_acceptors(SPid)),
+
+    CRes = sockerl_client:start_link(fun() -> {ok, [{state, TPid}]} end, ?HOST, ?PORT+1, ?CON_DBG_OPTS),
+    ?assertMatch({ok, _}, CRes),
+    {ok, CPid} = CRes,
+    ?assert(erlang:is_pid(CPid) andalso erlang:is_process_alive(CPid)),
+
+    SCons = sockerl:get_server_connections(SPid),
+    ?assertMatch([{_, _}], SCons),
+    [{SCRef, SCPid}] = SCons,
+    ?assert(erlang:is_reference(SCRef)),
+    ?assert(erlang:is_pid(SCPid)),
+    ?assert(erlang:is_process_alive(SCPid)),
+
+    erlang:spawn_link(fun() -> ?assertEqual(ok, sockerl:stop_connector(CPid)) end),
+    handle_callback(sockerl_client, terminate, CPid, ok),
+
+    handle_callback(sockerl_server, handle_disconnect, SCPid, ok),
+    handle_callback(sockerl_server, terminate, SCPid, ok),
+    timer:sleep(1),
+    ?assertEqual([], sockerl:get_server_connections(SPid)),
+
+    ?assertEqual(ok, sockerl:stop_server(SPid)),
+
+    SRes2 = sockerl_server:start_link(fun() -> {ok, fun() -> {ok, [{state, TPid}]} end} end, ?PORT, ?SERVER_OPTS ++ [{acceptor_count, 2}]),
+    ?assertMatch({ok, _Pid}, SRes2),
+    {ok, SPid2} = SRes2,
+    ?assert(erlang:is_process_alive(SPid2)),
+
+    SAccs = sockerl:get_acceptors(SPid2),
+    ?assertMatch([{_, _}, {_, _}], SAccs),
+
+    [{_, SAccPid1}, {_, SAccPid2}] = SAccs,
+    ?assert(erlang:is_process_alive(SAccPid1) andalso erlang:is_process_alive(SAccPid2)).
+%%    ok.
+
+
+
+
+'2'(_Config) ->
+    AccCount = 10,
+    TPid = erlang:self(),
+    SRes = sockerl_server:start_link(fun() -> {ok, fun() -> {ok, [{state, TPid}]} end} end
+                                    ,?PORT
+                                    ,?SERVER_OPTS ++ [{acceptor_count, AccCount}]),
+    ?assertMatch({ok, _Pid}, SRes),
+    {ok, SPid} = SRes,
+    ?assert(erlang:is_pid(SPid) andalso erlang:is_process_alive(SPid)),
+
+    SAccs = sockerl:get_acceptors(SPid),
+    ?assert(erlang:length(SAccs) == AccCount),
+
+    ?assertEqual(accept, sockerl:get_acceptor_modes(SPid)),
+    [?assertEqual(accept, sockerl_acceptor:get_mode(AccPid)) || {_Id, AccPid} <- SAccs],
+
+    ?assertEqual(sleep, sockerl:change_acceptor_modes(SPid)),
+
+    ?assertEqual(sleep, sockerl:get_acceptor_modes(SPid)),
+    [?assertEqual(sleep, sockerl_acceptor:get_mode(AccPid)) || {_Id, AccPid} <- SAccs],
+
+    ?assertEqual(ok, sockerl_acceptor:wakeup(erlang:element(2, erlang:hd(SAccs)))),
+    ?assertEqual(not_allowed, sockerl:change_acceptor_modes(SPid)),
+
+    ?assertEqual(ok, sockerl_acceptor:sleep(erlang:element(2, erlang:hd(SAccs)))),
+    ?assertEqual(accept, sockerl:change_acceptor_modes(SPid)).
+%%    ok.
+
+'3'(Config) ->
     InitArg = fun() -> {ok, undefined} end,
-    Res = sockerl_server:start_link(InitArg, ?PORT, ?REUSE_ADDR_START_OPTIONS),
+    Res = sockerl_server:start_link(InitArg, ?PORT, ?SERVER_OPTS),
     ?assertMatch({ok, _Pid}, Res),
     {ok, SPid} = Res,
     ?assertEqual([], sockerl:get_server_connections(SPid)),
     Res2 = sockerl_server_sup:fetch_acceptors(SPid),
     ?assertMatch([{1, _Pid}], Res2),
     [{_, AccPid}] = Res2,
-    accept = sockerl_server_sup:get_acceptor_modes(SPid),
+    ?assertEqual(accept, sockerl_server_sup:get_acceptor_modes(SPid)),
+    ?assertEqual(accept, sockerl_server_sup:get_acceptor_modes(SPid)),
     ?assertEqual(accept, sockerl_acceptor:get_mode(AccPid)),
     ?assertEqual(ok, sockerl:sleep_acceptors(SPid)),
-    sleep = sockerl_server_sup:get_acceptor_modes(SPid),
+    ?assertEqual(sleep, sockerl_server_sup:get_acceptor_modes(SPid)),
     ?assertEqual(sleep, sockerl_acceptor:get_mode(AccPid)),
     ?assertEqual(ok, sockerl:wakeup_acceptors(SPid)),
     ?assertEqual(ok, sockerl:stop_server(SPid)),
     ?assertEqual(false, erlang:is_process_alive(SPid)),
 
     InitArg2 = fun() -> ignore end,
-    ?assertEqual(ignore, sockerl_server:start_link(InitArg2, ?PORT+1, ?REUSE_ADDR_START_OPTIONS)),
+    ?assertEqual(ignore, sockerl_server:start_link(InitArg2, ?PORT+1, ?SERVER_OPTS)),
 
     InitArg3 = fun() -> {stop, oops} end,
-    ?assertEqual({error, oops}, sockerl_server:start_link(InitArg3, ?PORT+2, ?REUSE_ADDR_START_OPTIONS)),
+    ?assertEqual({error, oops}, sockerl_server:start_link(InitArg3, ?PORT+2, ?SERVER_OPTS)),
 
     Val = "bad_return_value",
     InitArg4 = fun() -> Val end,
-    ?assertMatch({error, {bad_return_value, [{returned_value, Val}|_]}}, sockerl_server:start_link(InitArg4, ?PORT+3, ?REUSE_ADDR_START_OPTIONS)),
-    Key = get_key_file(Config),
-    Cert = get_cert_file(Config),
-    Res3 = sockerl_server:start_link(InitArg, ?PORT, [{transporter, sockerl_ssl_transporter}
-                                                     ,{socket_options, [{keyfile, Key}
-                                                                       ,{certfile, Cert}
-                                                                       ,?REUSE_ADDR]}]),
+    ?assertMatch({error, {bad_return_value, [{returned_value, Val}|_]}}, sockerl_server:start_link(InitArg4, ?PORT+3, ?SERVER_OPTS)),
+    Res3 = sockerl_server:start_link(InitArg, ?PORT, ?SSL_SERVER_OPTS(Config)),
     ?assertMatch({ok, _Pid}, Res3),
     sockerl_server_sup:stop(erlang:element(2, Res3)).
 
 
-
-
-
-'2'(_Config) ->
+'4'(_Config) ->
     TPid = erlang:self(),
     SInitArg = fun() -> {ok, fun() -> {ok, [{state, TPid}]} end} end,
-    SRes = sockerl_server:start_link(SInitArg, ?PORT+1, [?ACC_DBG, ?CON_DBG, {socket_options, [?REUSE_ADDR]}]),
+    SRes = sockerl_server:start_link(SInitArg, ?PORT+1, ?SERVER_OPTS),
     ?assertMatch({ok, _Pid}, SRes),
     {ok, SPid} = SRes,
 
     CInitArg = fun() -> {ok, [{state, TPid}
                              ,{packet, "1"}]} end,
-    CRes = sockerl_client:start_link(CInitArg, ?HOST, ?PORT+1, [?CON_DBG]),
+    CRes = sockerl_client:start_link(CInitArg, ?HOST, ?PORT+1, ?CON_DBG_OPTS),
     ?assertMatch({ok, _Pid}, CRes),
     {ok, CConPid} = CRes,
+    timer:sleep(1),
     SCons = sockerl:get_server_connections(SPid),
     ?assertMatch([{_SConSock, _SConPid}], SCons),
     [{_, SConPid}] = SCons,
@@ -144,30 +227,25 @@ all() ->
     end,
 
     gen_server:cast(CConPid, cast_req),
-    io:format("2~n"),
     receive
         {sockerl_client, handle_cast, Ref6, cast_req, _, _} ->
             CConPid ! {Ref6, ok}
     end,
 
     SConPid ! {'$gen_event', event},
-    io:format("3~n"),
     receive
         {sockerl_server, handle_event, Ref7, event, _, _} ->
             SConPid ! {Ref7, {ok, [{timeout, 100}]}}
     end,
-    io:format("4~n"),
     receive
         {sockerl_server, timeout, Ref8, _, SM} ->
             ?assertEqual(100, sockerl_metadata:get_timeout(SM)),
             SConPid ! {Ref8, {ok, [{packet, <<"5">>}]}}
     end,
-    io:format("5~n"),
     receive
         {sockerl_client, handle_packet, Ref9, "5", _, _} ->
             CConPid ! {Ref9, close}
     end,
-    io:format("6~n"),
     receive
         {sockerl_client, terminate, Ref10, normal, _, _} ->
             CConPid ! {Ref10, ok}
@@ -183,31 +261,18 @@ all() ->
     end.
 
 
-
-
-
-
-
-'3'(Config) ->
+'5'(Config) ->
     TPid = erlang:self(),
     SInitArg = fun() -> {ok, fun() -> {ok, [{state, TPid}]} end} end,
-    Key = get_key_file(Config),
-    Cert = get_cert_file(Config),
     SRes = sockerl_server:start_link(SInitArg
                                     ,?PORT
-                                    ,[?ACC_DBG
-                                     ,?CON_DBG
-                                     ,{transporter, sockerl_ssl_transporter}
-                                     ,{socket_options
-                                      ,[{keyfile, Key}
-                                       ,{certfile, Cert}
-                                       ,?REUSE_ADDR]}]),
+                                    ,?SSL_SERVER_OPTS(Config)),
     ?assertMatch({ok, _Pid}, SRes),
     {ok, SPid} = SRes,
 
     CInitArg = fun() -> {ok, [{state, TPid}
                              ,{packet, "1"}]} end,
-    CRes = sockerl_client:start_link(CInitArg, ?HOST, ?PORT, [{transporter, sockerl_ssl_transporter}, ?CON_DBG]),
+    CRes = sockerl_client:start_link(CInitArg, ?HOST, ?PORT, ?SSL_CLIENT_OPTS),
     ?assertMatch({ok, _Pid}, CRes),
     {ok, CConPid} = CRes,
 
@@ -231,17 +296,17 @@ all() ->
 
 
 
-'4'(_Config) ->
+'6'(_Config) ->
     TPid = erlang:self(),
     SInitArg = fun() -> {ok, fun() -> {ok, [{state, TPid}, {length, 1}]} end} end,
-    SRes = sockerl_server:start_link(SInitArg, ?PORT, [?ACC_DBG, ?CON_DBG, {socket_options, [{active, false}, ?REUSE_ADDR]}]),
+    SRes = sockerl_server:start_link(SInitArg, ?PORT, ?B_SERVER_OPTS),
     ?assertMatch({ok, _Pid}, SRes),
     {ok, SPid} = SRes,
 
     CInitArg = fun() -> {ok, [{state, TPid}
                              ,{packet, "12"}
                              ,{timeout, 0}]} end,
-    CRes = sockerl_client:start_link(CInitArg, ?HOST, ?PORT, [?CON_DBG, {active, false}]),
+    CRes = sockerl_client:start_link(CInitArg, ?HOST, ?PORT, ?CON_DBG_OPTS),%?B_CLIENT_OPTS),
     ?assertMatch({ok, _Pid}, CRes),
     {ok, CConPid} = CRes,
     timer:sleep(1),
@@ -249,6 +314,11 @@ all() ->
     ?assertMatch([{_SConSock, _SConPid}], SCons),
     [{_, SConPid}] = SCons,
     io:format("1~n"),
+    receive
+        {sockerl_server, handle_packet, Ref, "1", _, _} ->
+            SConPid ! {Ref, {ok, [{packet, ""}, {timeout, 0}, {length, 0}]}}
+    end,
+    io:format("2~n"),
 %%    receive
 %%        Msg ->
 %%            io:format("~p~n", [Msg])
@@ -257,11 +327,6 @@ all() ->
 %%        Msg2 ->
 %%            io:format("~p~n", [Msg2])
 %%    end,
-    receive
-        {sockerl_server, handle_packet, Ref, "1", _, _} ->
-            SConPid ! {Ref, {ok, [{packet, ""}, {timeout, 0}, {length, 0}]}}
-    end,
-    io:format("2~n"),
     receive
         {sockerl_client, timeout, Ref2, _, _} ->
             CConPid ! {Ref2, {ok, [{srtimeout, 100}, {timeout, infinity}]}}
@@ -307,9 +372,21 @@ all() ->
 
 
 
-
-
-
+handle_callback(Mod, Func, Pid, Reply) ->
+    receive
+        {Mod, Func, Ref, State, SMD} ->
+            Pid ! {Ref, Reply},
+            {State, SMD};
+        {Mod, Func, Ref, Arg, State, SMD} ->
+            Pid ! {Ref, Reply},
+            {Arg, State, SMD};
+        {Mod, Func, Ref, Arg1, Arg2, State, SMD} ->
+            Pid ! {Ref, Reply},
+            {Arg1, Arg2, State, SMD}
+    after 5000 ->
+        ct:pal("Did not receive callback message for ~p:~p and could not send ~p to ~p~n", [Mod, Func, Reply, Pid]),
+        erlang:exit({timeout, {Mod, Func, Pid, Reply}})
+    end.
 
 
 
