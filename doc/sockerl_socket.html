@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Module sockerl_socket</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
+</head>
+<body bgcolor="white">
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<hr>
+
+<h1>Module sockerl_socket</h1>
+<ul class="index"><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>
+
+<p><b>Version:</b> 17.9.2
+  -------------------------------------------------------------------------------------------------</p>
+<p><b>Authors:</b> Pouriya Jahanbakhsh (<a href="mailto:pouriya.jahanbakhsh@gmail.com"><tt>pouriya.jahanbakhsh@gmail.com</tt></a>).</p>
+
+<h2><a name="index">Function Index</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#accept-3">accept/3</a></td><td>
+       accepts incoming connection and returns new connection socket.</td></tr>
+<tr><td valign="top"><a href="#close-3">close/3</a></td><td>
+       Closes an open socket.</td></tr>
+<tr><td valign="top"><a href="#connect-4">connect/4</a></td><td>
+       makes a connection to remote host and port.</td></tr>
+<tr><td valign="top"><a href="#controlling_process-4">controlling_process/4</a></td><td>
+       changes the receiver of socket messages.</td></tr>
+<tr><td valign="top"><a href="#format_error-2">format_error/2</a></td><td>
+       Returns understandable string or binary about error.</td></tr>
+<tr><td valign="top"><a href="#is_active-3">is_active/3</a></td><td>
+       returns activity flag of socket.</td></tr>
+<tr><td valign="top"><a href="#is_socket_message-3">is_socket_message/3</a></td><td>
+       determines that the term is message like messages of gen_tcp
+       and ssl sockets in active mode or not.</td></tr>
+<tr><td valign="top"><a href="#listen-3">listen/3</a></td><td>
+       returns listen socket which can accepts incoming connections on
+       given port.</td></tr>
+<tr><td valign="top"><a href="#recv-5">recv/5</a></td><td>
+       Receives data from passive socket.</td></tr>
+<tr><td valign="top"><a href="#send-4">send/4</a></td><td>
+       sends packet through socket.</td></tr>
+<tr><td valign="top"><a href="#setopts-4">setopts/4</a></td><td>
+       Changes options of socket.</td></tr>
+<tr><td valign="top"><a href="#shutdown-4">shutdown/4</a></td><td>
+       closes read or write or read/write of socket.</td></tr>
+</table>
+
+<h2><a name="functions">Function Details</a></h2>
+
+<h3 class="function"><a name="accept-3">accept/3</a></h3>
+<div class="spec">
+<p><tt>accept(TrMod::module(), LSock::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>, Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; {ok, <a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>} | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       accepts incoming connection and returns new connection socket.</p>
+
+<h3 class="function"><a name="close-3">close/3</a></h3>
+<div class="spec">
+<p><tt>close(TrMod::module(), Sock::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>, Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; ok | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       Closes an open socket.</p>
+
+<h3 class="function"><a name="connect-4">connect/4</a></h3>
+<div class="spec">
+<p><tt>connect(TrMod::module(), Host::<a href="sockerl_types.html#type-host">sockerl_types:host()</a>, Port::<a href="sockerl_types.html#type-port_number">sockerl_types:port_number()</a>, Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; {ok, <a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>} | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       makes a connection to remote host and port.</p>
+
+<h3 class="function"><a name="controlling_process-4">controlling_process/4</a></h3>
+<div class="spec">
+<p><tt>controlling_process(TrMod::module(), Sock::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>, Pid::pid(), Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; ok | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       changes the receiver of socket messages.</p>
+
+<h3 class="function"><a name="format_error-2">format_error/2</a></h3>
+<div class="spec">
+<p><tt>format_error(TrMod::module(), Reason::any()) -&gt; string() | binary()</tt><br></p>
+</div><p>
+       Returns understandable string or binary about error.</p>
+
+<h3 class="function"><a name="is_active-3">is_active/3</a></h3>
+<div class="spec">
+<p><tt>is_active(TrMod::module(), Sock::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>, Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; {ok, boolean()} | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       returns activity flag of socket.</p>
+
+<h3 class="function"><a name="is_socket_message-3">is_socket_message/3</a></h3>
+<div class="spec">
+<p><tt>is_socket_message(TrMod::module(), Msg::term(), Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; {ok, <a href="sockerl_types.html#type-packet">sockerl_types:packet()</a>} | <a href="sockerl_types.html#type-error">sockerl_types:error()</a> | false</tt><br></p>
+</div><p>
+       determines that the term is message like messages of gen_tcp
+       and ssl sockets in active mode or not.</p>
+
+<h3 class="function"><a name="listen-3">listen/3</a></h3>
+<div class="spec">
+<p><tt>listen(TrMod::module(), Port::<a href="sockerl_types.html#type-port_number">sockerl_types:port_number()</a>, Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; {ok, <a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>} | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       returns listen socket which can accepts incoming connections on
+       given port.</p>
+
+<h3 class="function"><a name="recv-5">recv/5</a></h3>
+<div class="spec">
+<p><tt>recv(TrMod::module(), Sock::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>, Len::<a href="sockerl_transporter.html#type-length">sockerl_transporter:length()</a>, Timeout::timeout(), Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; {ok, <a href="sockerl_types.html#type-packet">sockerl_types:packet()</a>} | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       Receives data from passive socket.</p>
+
+<h3 class="function"><a name="send-4">send/4</a></h3>
+<div class="spec">
+<p><tt>send(TrMod::module(), Sock::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>, Packet::<a href="sockerl_types.html#type-packet">sockerl_types:packet()</a>, Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; ok | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       sends packet through socket.</p>
+
+<h3 class="function"><a name="setopts-4">setopts/4</a></h3>
+<div class="spec">
+<p><tt>setopts(TrMod::module(), Sock::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>, SockOpts::list(), Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; ok | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       Changes options of socket.</p>
+
+<h3 class="function"><a name="shutdown-4">shutdown/4</a></h3>
+<div class="spec">
+<p><tt>shutdown(TrMod::module(), Sock::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a>, Type::<a href="sockerl_types.html#type-shutdown_type">sockerl_types:shutdown_type()</a>, Opts::<a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>) -&gt; ok | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div><p>
+       closes read or write or read/write of socket.</p>
+<hr>
+
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc, Sep 2 2017, 12:21:15.</i></p>
+</body>
+</html>

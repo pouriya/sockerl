@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Module sockerl_connector</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
+</head>
+<body bgcolor="white">
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<hr>
+
+<h1>Module sockerl_connector</h1>
+<ul class="index"><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>
+
+<p><b>Version:</b> 17.9.2
+  -------------------------------------------------------------------------------------------------</p>
+<p><b>Authors:</b> Pouriya Jahanbakhsh (<a href="mailto:pouriya.jahanbakhsh@gmail.com"><tt>pouriya.jahanbakhsh@gmail.com</tt></a>).</p>
+
+<h2><a name="index">Function Index</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#send_async-2">send_async/2</a></td><td></td></tr>
+<tr><td valign="top"><a href="#send_sync-2">send_sync/2</a></td><td></td></tr>
+<tr><td valign="top"><a href="#send_sync-3">send_sync/3</a></td><td></td></tr>
+<tr><td valign="top"><a href="#start_link-4">start_link/4</a></td><td>
+       starts and links a socket connection handler process.</td></tr>
+<tr><td valign="top"><a href="#start_link-5">start_link/5</a></td><td></td></tr>
+<tr><td valign="top"><a href="#start_link-6">start_link/6</a></td><td></td></tr>
+<tr><td valign="top"><a href="#stop-1">stop/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#stop-2">stop/2</a></td><td></td></tr>
+</table>
+
+<h2><a name="functions">Function Details</a></h2>
+
+<h3 class="function"><a name="send_async-2">send_async/2</a></h3>
+<div class="spec">
+<p><tt>send_async(Con::<a href="sockerl_types.html#type-name">sockerl_types:name()</a>, Packet::<a href="sockerl_types.html#type-packet">sockerl_types:packet()</a>) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="send_sync-2">send_sync/2</a></h3>
+<div class="spec">
+<p><tt>send_sync(Con::<a href="sockerl_types.html#type-name">sockerl_types:name()</a>, Packet::<a href="sockerl_types.html#type-packet">sockerl_types:packet()</a>) -&gt; ok | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div>
+
+<h3 class="function"><a name="send_sync-3">send_sync/3</a></h3>
+<div class="spec">
+<p><tt>send_sync(Con::<a href="sockerl_types.html#type-name">sockerl_types:name()</a>, Packet::<a href="sockerl_types.html#type-packet">sockerl_types:packet()</a>, Timeout::timeout()) -&gt; ok | <a href="sockerl_types.html#type-error">sockerl_types:error()</a></tt><br></p>
+</div>
+
+<h3 class="function"><a name="start_link-4">start_link/4</a></h3>
+<div class="spec">
+<p><tt>start_link(Mod::module(), InitArg::term(), Host::<a href="sockerl_types.html#type-socket">sockerl_types:socket()</a> | <a href="sockerl_types.html#type-host">sockerl_types:host()</a>, Port::<a href="sockerl_types.html#type-options">sockerl_types:options()</a> | <a href="sockerl_types.html#type-port_number">sockerl_types:port_number()</a>) -&gt; <a href="sockerl_types.html#type-start_return">sockerl_types:start_return()</a></tt><br></p>
+</div><p>
+       starts and links a socket connection handler process.</p>
+
+<h3 class="function"><a name="start_link-5">start_link/5</a></h3>
+<div class="spec">
+<p><tt>start_link(Mod::module() | <a href="sockerl_types.html#type-register_name">sockerl_types:register_name()</a>, InitArg::term() | module(), Host::<a href="sockerl_types.html#type-host">sockerl_types:host()</a> | term() | <a href="sockerl_types.html#type-start_options">sockerl_types:start_options()</a>, Port::<a href="sockerl_types.html#type-port_number">sockerl_types:port_number()</a> | <a href="sockerl_types.html#type-host">sockerl_types:host()</a>, Opts::<a href="sockerl_types.html#type-options">sockerl_types:options()</a> | <a href="sockerl_types.html#type-port_number">sockerl_types:port_number()</a>) -&gt; <a href="sockerl_types.html#type-start_return">sockerl_types:start_return()</a></tt><br></p>
+</div>
+
+<h3 class="function"><a name="start_link-6">start_link/6</a></h3>
+<div class="spec">
+<p><tt>start_link(Name::<a href="sockerl_types.html#type-register_name">sockerl_types:register_name()</a>, Mod::module(), InitArg::term(), Host::<a href="sockerl_types.html#type-host">sockerl_types:host()</a>, Port::<a href="sockerl_types.html#type-port_number">sockerl_types:port_number()</a>, Opts::<a href="sockerl_types.html#type-options">sockerl_types:options()</a>) -&gt; <a href="sockerl_types.html#type-start_return">sockerl_types:start_return()</a></tt><br></p>
+</div>
+
+<h3 class="function"><a name="stop-1">stop/1</a></h3>
+<div class="spec">
+<p><tt>stop(Con::<a href="sockerl_types.html#type-name">sockerl_types:name()</a>) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="stop-2">stop/2</a></h3>
+<div class="spec">
+<p><tt>stop(Con::<a href="sockerl_types.html#type-name">sockerl_types:name()</a>, Reason::any()) -&gt; ok</tt><br></p>
+</div>
+<hr>
+
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc, Sep 2 2017, 12:21:14.</i></p>
+</body>
+</html>
