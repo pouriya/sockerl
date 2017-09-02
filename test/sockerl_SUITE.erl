@@ -280,6 +280,7 @@ all() ->
     SCons = sockerl:get_server_connections(SPid),
     ?assertMatch([{_SConSock, _SConPid}], SCons),
     [{_, SConPid}] = SCons,
+    %% don't use handle_callback, because we want to sure about ssl packet correctness.
     receive
         {sockerl_server, handle_packet, Ref, "1", _, _} ->
             SConPid ! {Ref, {ok, [{packet, "2"}]}}
@@ -313,58 +314,24 @@ all() ->
     SCons = sockerl:get_server_connections(SPid),
     ?assertMatch([{_SConSock, _SConPid}], SCons),
     [{_, SConPid}] = SCons,
-    io:format("1~n"),
-    receive
-        {sockerl_server, handle_packet, Ref, "1", _, _} ->
-            SConPid ! {Ref, {ok, [{packet, ""}, {timeout, 0}, {length, 0}]}}
-    end,
-    io:format("2~n"),
-%%    receive
-%%        Msg ->
-%%            io:format("~p~n", [Msg])
-%%    end,
-%%    receive
-%%        Msg2 ->
-%%            io:format("~p~n", [Msg2])
-%%    end,
-    receive
-        {sockerl_client, timeout, Ref2, _, _} ->
-            CConPid ! {Ref2, {ok, [{srtimeout, 100}, {timeout, infinity}]}}
-    end,
-    io:format("3~n"),
-    receive
-        {sockerl_server, timeout, Ref3, _, _} ->
-            SConPid ! {Ref3, {ok, [{timeout, 0}]}}
-    end,
-    io:format("4~n"),
-    receive
-        {sockerl_server, handle_packet, Ref4, "2", _, _} ->
-            SConPid ! {Ref4, {ok, [{packet, <<"12345">>}]}}
-    end,
-    io:format("5~n"),
-    receive
-        {sockerl_client, handle_packet, Ref5, "12345", _, _} ->
-            CConPid ! {Ref5, close}
-    end,
-    io:format("6~n"),
-    receive
-        {sockerl_client, terminate, Ref6, normal, _, _} ->
-            CConPid ! {Ref6, ok}
-    end,
-    io:format("7~n"),
-    receive
-        {sockerl_server, timeout, Ref7, _, _} ->
-            SConPid ! {Ref7, {ok, [{timeout, infinity}]}}
-    end,
-    io:format("8~n"),
-    receive
-        {sockerl_server, handle_disconnect, Ref8, _, _} ->
-            SConPid ! {Ref8, ok}
-    end,
-    receive
-        {sockerl_server, terminate, Ref9, normal, _, _} ->
-            SConPid ! {Ref9, ok}
-    end.
+
+    handle_callback(sockerl_server, handle_packet, SConPid, {ok, [{packet, ""}, {timeout, 0}, {length, 0}]}),
+
+    handle_callback(sockerl_client, timeout, CConPid, {ok, [{srtimeout, 100}, {timeout, infinity}]}),
+
+    handle_callback(sockerl_server, timeout, SConPid, {ok, [{timeout, 0}]}),
+
+    handle_callback(sockerl_server, handle_packet, SConPid, {ok, [{packet, <<"12345">>}]}),
+
+    handle_callback(sockerl_client, handle_packet, CConPid, close),
+
+    handle_callback(sockerl_client, terminate, CConPid, ok),
+
+    handle_callback(sockerl_server, timeout, SConPid, {ok, [{timeout, infinity}]}),
+
+    handle_callback(sockerl_server, handle_disconnect, SConPid, ok),
+
+    handle_callback(sockerl_server, terminate, SConPid, ok).
 
 
 
