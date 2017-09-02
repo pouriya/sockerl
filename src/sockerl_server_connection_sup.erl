@@ -71,7 +71,7 @@
 
 
 
--define(DEF_START_OPTS, [{log_validate_fun, fun log_validate/2}]).
+-define(DEF_START_OPTS, [{log_validtor, fun log_validtor/2}]).
 
 
 
@@ -174,11 +174,11 @@ concat([], List2) ->
 
 
 
-log_validate('$director', {warning, _}) ->
+log_validtor('$director', {warning, _}) ->
     long;
-log_validate(_, {info, start}) ->
+log_validtor(_, {info, start}) ->
     none;
-log_validate(_, {error, normal}) ->
+log_validtor(_, {error, normal}) ->
     none;
-log_validate(_, _) ->
+log_validtor(_, _) ->
     long.

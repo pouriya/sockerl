@@ -90,7 +90,7 @@
 
 
 
--define(DEF_START_OPTIONS, [{log_validate_fun, fun log_validate/2}]).
+-define(DEF_START_OPTIONS, [{log_validtor, fun log_validtor/2}]).
 -define(DEF_CHILDSPEC_PLAN, [fun sockerl_utils:default_connector_plan_fun/3]).
 -define(DEF_CHILDSPEC_COUNT, 1).
 -define(DEF_TERMINATE_TIMEOUT, 10*1000).
@@ -349,11 +349,11 @@ filter_addresses([Other|_Addrs], _Addrs) ->
 
 
 
-log_validate(_, {error, normal}) ->
+log_validtor(_, {error, normal}) ->
     none;
-log_validate('$director', {error, _}) ->
+log_validtor('$director', {error, _}) ->
     none;
-log_validate(_, {info, start}) ->
+log_validtor(_, {info, start}) ->
     short;
-log_validate(_, _) ->
+log_validtor(_, _) ->
     long.
