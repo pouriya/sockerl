@@ -14,11 +14,11 @@ Sockerl is an advanced Erlang/Elixir socket library for TCP protocols and provid
 
 * Acceptors and Connectors have been written as `Special Erlang process` and they are faster than `gen_server`, `gen_fsm`, etc.  
 
-* Blocking and non-blocking sockets are supported with doing a few changes in your code.  
+* Blocking and non-blocking sockets are supported.  
 
-* SSL is supported too (you can define your own `sockerl_transporter` behavior for any protocol like SSL).  
+* SSL is supported too.  
 
-* Connects to multiple addresses and has multiple connections to every address in client pools.  
+* Connects to multiple addresses and has multiple connections to every address in client connection pools.  
 
 * Add new Client(s) to existing pool.  
 
