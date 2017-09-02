@@ -81,7 +81,7 @@
 
 -define(ACCEPTOR_SUP, acceptor_sup).
 -define(CONNECTION_SUP, connection_sup).
--define(DEF_START_OPTS, [{log_validtor, fun log_validtor/2}]).
+-define(DEF_START_OPTS, [{log_validator, fun log_validator/2}]).
 -define(DEF_ACCEPTOR_COUNT, 1).
 -define(DEF_SOCKET_OPTIONS, []).
 -define(DEF_SSL_FLAG, false).
@@ -382,9 +382,15 @@ start_acceptors(ConSups, AccSup) ->
 
 
 
-log_validtor(_, {info, start}) ->
+log_validator('$director', {warning, _}) ->
+    long;
+log_validator('$director', {error, normal}) ->
     none;
-log_validtor(_, {error, normal}) ->
-    short;
-log_validtor(_, _) ->
+log_validator('$director', {error, _}) ->
+    long;
+log_validator(_, {info, start}) ->
+    none;
+log_validator(_, {error, normal}) ->
+    none;
+log_validator(_, {error, _}) ->
     long.

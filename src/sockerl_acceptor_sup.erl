@@ -80,7 +80,7 @@
 
 
 
--define(DEF_START_OPTS, [{log_validtor, fun log_validtor/2}]).
+-define(DEF_START_OPTS, [{log_validator, fun log_validator/2}]).
 
 
 
@@ -233,11 +233,15 @@ get_mode_fix_return([_|_Modes], Modes2, _Mode) ->
 
 
 
-log_validtor('$director', {warning, _}) ->
+log_validator('$director', {warning, _}) ->
     long;
-log_validtor(_, {info, start}) ->
+log_validator('$director', {error, normal}) ->
     none;
-log_validtor(_, {error, normal}) ->
+log_validator('$director', {error, _}) ->
+    long;
+log_validator(_, {info, start}) ->
     none;
-log_validtor(_, _) ->
+log_validator(_, {error, normal}) ->
+    none;
+log_validator(_, {error, _}) ->
     long.
