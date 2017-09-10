@@ -32,44 +32,6 @@ All features not listed here.
 
 
 
-***
-# Download source
-
-##### Git
-```sh
-~ $ git clone --branch 17.9.3 https://github.com/Pouriya-Jahanbakhsh/sockerl.git
-```
-
-# Download compiled
-For compiled source and its dependencies download **lib.tar.gz** from [**Releases**](https://github.com/Pouriya-Jahanbakhsh/sockerl/releases)
-
-# Use as dependency
-
-##### Rebar3
-Put this in `deps` in `rebar.config`:
-```erlang
-{sockerl, "17.9.3"}
-```
-
-
-##### Rebar
-Put this in `deps` in `rebar.config`:  
-```erlang
-{sockerl, ".*", {git, "https://github.com/Pouriya-Jahanbakhsh/sockerl.git", {tag, "17.9.3"}}}
-```
-
-##### Mix
-Put this in deps in `mix.exs`:  
-```erlang
-{:sockerl, "~> 17.9.3"}
-```
-
-
-#### erlang.mk
-```sh
-dep_sockerl = hex 17.9.3
-```
-
 # Documentation
 See [**Wiki**](https://github.com/Pouriya-Jahanbakhsh/sockerl/wiki)
 
