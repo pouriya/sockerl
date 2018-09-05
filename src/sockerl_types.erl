@@ -76,6 +76,7 @@
                        | {'acceptor_mode', 'accept' | 'sleep'}
                        | {'acceptor_debug', [sys:dbg_opt()]}
                        | {'connector_childspec_plan', list()}
+                       | {'connector_watchdogged', boolean()}
                        | {'connector_childspec_count', non_neg_integer()
                                                      | 'infnity'}
                        | {'connector_per_address'

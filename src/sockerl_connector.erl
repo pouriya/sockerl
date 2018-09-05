@@ -290,9 +290,19 @@ stop(Con, Reason) ->
 %% @hidden
 init_it(Starter, Parent, Name, Mod, {InitArg, Host, Port}, Opts) ->
     TrMod = sockerl_utils:get_value(transporter, Opts, ?DEF_TRANSPORT_MODULE, fun erlang:is_atom/1),
+    IsWatchdogged = sockerl_utils:get_value(connector_watchdogged, Opts, false, fun erlang:is_boolean/1),
     case sockerl_socket:connect(TrMod, Host, Port, Opts) of
         {ok, Sock} ->
             init_it(Starter, Parent, Name, Mod, {InitArg, Sock}, Opts, {Host, Port});
+        {error, {socket_connect, ErrList}=Reason}=Error when IsWatchdogged == true ->
+           case lists:keyfind(reason, 1, ErrList) of
+               {_, econnrefused} ->
+                   proc_lib:init_ack(Starter, {ok, erlang:self()}),
+                   erlang:exit(Reason);
+               false ->
+                   proc_lib:init_ack(Starter, Error),
+                   erlang:exit(Reason)
+           end;
         {error, Reason}=Error ->
             proc_lib:init_ack(Starter, Error),
             erlang:exit(Reason)
