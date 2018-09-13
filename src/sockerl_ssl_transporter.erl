@@ -108,7 +108,7 @@ accept(ListenSock, Opts) ->
     {ATimeout, HTimeout} = get_accept_and_handshake_timeout(Opts),
     case catch ssl:transport_accept(ListenSock, ATimeout) of
         {ok, Sock} ->
-            case catch ssl:ssl_accept(Sock, HTimeout) of
+            case catch ssl:handshake(Sock, HTimeout) of
                 ok ->
                     {ok, Sock};
                 {error, Reason} ->
